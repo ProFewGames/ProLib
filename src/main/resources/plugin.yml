@@ -1,0 +1,10 @@
+main: xyz.ufactions.prolib.ProLib
+name: ProLib
+version: 1.0
+author: ProFewGames
+description: Developer libraries for plugins.
+api-version: 1.14
+permissions:
+  prolib.networking.notify:
+    description: Permission to view network notifications
+    default: op
