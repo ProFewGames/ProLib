@@ -1,10 +1,8 @@
 package xyz.ufactions.prolib.libs;
 
-import net.minecraft.server.v1_14_R1.Packet;
-import net.minecraft.server.v1_14_R1.PlayerConnection;
+import org.apache.commons.lang.Validate;
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_14_R1.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -17,15 +15,19 @@ import java.util.*;
 
 public class UtilPlayer {
 
+    // Classes
     private static final ReflectionUtils.RefClass ClassCraftPlayer = ReflectionUtils.getRefClass("{cb}.entity.CraftPlayer");
-    private static final ReflectionUtils.RefMethod MethodGetHandle = ClassCraftPlayer.getMethod("getHandle");
     private static final ReflectionUtils.RefClass ClassEntityPlayer = ReflectionUtils.getRefClass("{nms}.EntityPlayer");
-    private static final ReflectionUtils.RefMethod MethodIsSpectator = ClassEntityPlayer.getMethod("isSpectator");
+    private static final ReflectionUtils.RefClass ClassPlayerConnection = ReflectionUtils.getRefClass("{nms}.PlayerConnection");
+    private static final ReflectionUtils.RefClass ClassPacket = ReflectionUtils.getRefClass("{nms}.Packet");
 
-//    private static final ReflectionUtils.RefClass ClassPlayerConnection = ReflectionUtils.getRefClass("{nms}.PlayerConnection");
-//    private static final ReflectionUtils.RefField FieldPlayerConnection = ClassPlayerConnection.getField("playerConnection");
-//    private static final ReflectionUtils.RefClass ClassPacket = ReflectionUtils.getRefClass("{nms}.Packet");
-//    private static final ReflectionUtils.RefMethod MethodSendPacket = ClassPlayerConnection.getMethod("sendPacket", ClassPacket);
+    // Methods
+    private static final ReflectionUtils.RefMethod EntityPlayerMethodIsSpectator = ClassEntityPlayer.getMethod("isSpectator");
+    private static final ReflectionUtils.RefMethod CraftPlayerMethodGetHandle = ClassCraftPlayer.getMethod("getHandle");
+    private static final ReflectionUtils.RefMethod PlayerConnectionMethodSendPacket = ClassPlayerConnection.getMethod("sendPacket", ClassPacket);
+
+    // Fields
+    private static final ReflectionUtils.RefField EntityPlayerFieldPlayerConnection = ClassEntityPlayer.getField("playerConnection");
 
     private static boolean hasIntersection(Vector3D p1, Vector3D p2, Vector3D min, Vector3D max) {
         final double epsilon = 0.0001f;
@@ -500,23 +502,22 @@ public class UtilPlayer {
         throw new UnsupportedOperationException("This method still needs to be worked on! Please contact a developer.");
     }
 
-    // TODO MUTLVERSION SUPPORT
-    public static void sendPacket(Player player, Packet<?>... packets) {
-//        Object handle = MethodGetHandle.of(player).call();
-//        Object connection = FieldPlayerConnection.of(handle).get();
-//        MethodSendPacket.of(connection).call();
+    public static void sendPacket(Player player, Object... packets) {
+        Validate.notEmpty(packets, "Packet array empty.");
 
-        PlayerConnection connection = ((CraftPlayer) player).getHandle().playerConnection;
+        Object handle = CraftPlayerMethodGetHandle.of(player).call();
+        Object connection = EntityPlayerFieldPlayerConnection.of(handle).get();
 
-        for (Packet<?> packet : packets) {
-            connection.sendPacket(packet);
+        for (Object packet : packets) {
+            Validate.isTrue(packet.getClass().isInstance(ClassPacket.getRealClass()), "'" + packet + "' isn't packet.");
+            PlayerConnectionMethodSendPacket.of(connection).call(packet);
         }
     }
 
     public static boolean isSpectator(Entity player) {
         if (player instanceof Player) {
-            Object handle = MethodGetHandle.of(player).call();
-            return (boolean) MethodIsSpectator.of(handle).call();
+            Object handle = CraftPlayerMethodGetHandle.of(player).call();
+            return (boolean) EntityPlayerMethodIsSpectator.of(handle).call();
         }
         return false;
     }

@@ -6,6 +6,7 @@ import xyz.ufactions.prolib.api.MegaPlugin;
 import xyz.ufactions.prolib.api.exception.MegaException;
 import xyz.ufactions.prolib.autoupdate.ProUpdater;
 import xyz.ufactions.prolib.command.CommandCenter;
+import xyz.ufactions.prolib.database.DBPool;
 import xyz.ufactions.prolib.file.ProLibConfig;
 import xyz.ufactions.prolib.libs.UtilServer;
 import xyz.ufactions.prolib.monitor.LagMeter;
@@ -40,6 +41,13 @@ public class ProLib extends MegaPlugin {
                 if (debugging())
                     e.printStackTrace();
             }
+        } else {
+            log("Plugin Updater disabled.");
+        }
+        if (DBPool.allowMySQL()) {
+            log("MySQL Supported");
+        } else {
+            log("MySQL Unsupported");
         }
         generateSettings();
         log("Initializing Mechanics");

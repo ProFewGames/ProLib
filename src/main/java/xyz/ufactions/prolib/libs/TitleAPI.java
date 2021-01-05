@@ -1,8 +1,5 @@
 package xyz.ufactions.prolib.libs;
 
-import net.minecraft.server.v1_14_R1.ChatMessage;
-import net.minecraft.server.v1_14_R1.Packet;
-import net.minecraft.server.v1_14_R1.PacketPlayOutTitle;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -16,9 +13,7 @@ public class TitleAPI {
 
     public static void sendTitle(Player player, String title, String subtitle, int fadeIn, int stay, int fadeout) {
         setTimings(player, fadeIn, stay, fadeout);
-        Packet<?> a = new PacketPlayOutTitle(PacketPlayOutTitle.EnumTitleAction.TITLE, new ChatMessage(title));
-        Packet<?> b = new PacketPlayOutTitle(PacketPlayOutTitle.EnumTitleAction.SUBTITLE, new ChatMessage(subtitle));
-        UtilPlayer.sendPacket(player, a, b);
+        player.sendMessage("Unimplemented:TitleAPI$sendTitle");
     }
 
     public static void sendTabHF(String header, String footer) {
@@ -38,12 +33,12 @@ public class TitleAPI {
         }
     }
 
-    public static void sendActionBar(Player p, String message, int stay) {
-        setTimings(p, 0, stay, 0);
-        UtilPlayer.sendPacket(p, new PacketPlayOutTitle(PacketPlayOutTitle.EnumTitleAction.ACTIONBAR, new ChatMessage(message)));
+    public static void sendActionBar(Player player, String message, int stay) {
+        setTimings(player, 0, stay, 0);
+        player.sendMessage("Unimplemented:TitleAPI$sendActionBar");
     }
 
     private static void setTimings(Player player, int fadeIn, int stay, int fadeOut) {
-        UtilPlayer.sendPacket(player, new PacketPlayOutTitle(fadeIn, stay, fadeOut));
+        player.sendMessage("Unimplemented:TitleAPI$setTimings");
     }
 }

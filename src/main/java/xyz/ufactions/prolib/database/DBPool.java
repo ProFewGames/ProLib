@@ -50,7 +50,7 @@ public final class DBPool {
         return map.get(type);
     }
 
-    private static boolean allowMySQL() {
+    public static boolean allowMySQL() {
         return getConfig().getBoolean("mysql.enabled");
     }
 
