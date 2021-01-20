@@ -8,6 +8,7 @@ import xyz.ufactions.prolib.file.ProLibConfig;
 import xyz.ufactions.prolib.libs.F;
 import xyz.ufactions.prolib.libs.UtilPlayer;
 import xyz.ufactions.prolib.libs.UtilServer;
+import xyz.ufactions.prolib.networking.command.HubCommand;
 import xyz.ufactions.prolib.networking.command.SendCommand;
 import xyz.ufactions.prolib.networking.command.ServerCommand;
 import xyz.ufactions.prolib.networking.event.NetworkServerStatusChangeEvent;
@@ -37,6 +38,7 @@ public class NetworkModule extends Module {
 
             addCommand(new ServerCommand(this));
             addCommand(new SendCommand(this));
+            addCommand(new HubCommand(this));
         }
     }
 
@@ -81,7 +83,7 @@ public class NetworkModule extends Module {
 
         for (MinecraftServer server : addedServers) {
             for (Player player : UtilServer.getPlayers()) {
-                if(player.hasPermission("prolib.networking.notify")) {
+                if (player.hasPermission("prolib.networking.notify")) {
                     player.sendMessage(F.line());
                     player.sendMessage("");
                     UtilPlayer.message(player, F.main(Plugin.getName(), F.elem(server.getName()) + " " + F.cd(true) + " to the network."));
@@ -95,7 +97,7 @@ public class NetworkModule extends Module {
 
         for (MinecraftServer server : removedServers) {
             for (Player player : UtilServer.getPlayers()) {
-                if(player.hasPermission("prolib.networking.notify")) {
+                if (player.hasPermission("prolib.networking.notify")) {
                     player.sendMessage(F.line());
                     player.sendMessage("");
                     UtilPlayer.message(player, F.main(Plugin.getName(), F.elem(server.getName()) + " " + F.cd(false) + " from the network."));

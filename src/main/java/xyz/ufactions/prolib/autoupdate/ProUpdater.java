@@ -40,7 +40,7 @@ public class ProUpdater {
      * Update mechanics for said plugin from global repository
      *
      * @param plugin         The updating plugin
-     * @param file           The plugins data file; Get this by doing {@code this.getDataFile();} in your main class
+     * @param file           The plugins data file; Get this by doing {@code this.getFile();} in your main class
      * @param url            The url we're checking there's an update in
      * @param jarCheck Should we check if the URL is going to return a Jar before downloading?
      * @throws IOException   If the URL cannot be parsed

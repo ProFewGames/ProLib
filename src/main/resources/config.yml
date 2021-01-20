@@ -24,3 +24,9 @@ auto-updater:
   enabled: false
   secure-jar: true
   url: https://yourdomain.com/prolib.jar
+
+formatting:
+  primary: 'DARK_PURPLE'
+  secondary: 'LIGHT_PURPLE'
+  elemental: 'YELLOW'
+  error: 'RED'

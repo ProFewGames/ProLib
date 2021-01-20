@@ -14,6 +14,7 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
+import xyz.ufactions.enchantmentlib.EnchantmentLib;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -24,31 +25,16 @@ import java.util.Iterator;
 
 public class UtilInv {
 
-    private static DullEnchantment _enchantment;
-
-    static {
-        try {
-            Field _enchantmentNew = Enchantment.class.getDeclaredField("acceptingNew");
-            _enchantmentNew.setAccessible(true);
-            _enchantmentNew.set(null, Boolean.TRUE);
-
-            _enchantment = new DullEnchantment();
-
-            Enchantment.registerEnchantment(_enchantment);
-        } catch (Exception ignored) {
-        }
-    }
-
     public static void addDullEnchantment(ItemStack itemStack) {
-        itemStack.addEnchantment(_enchantment, 1);
+        itemStack.addEnchantment(getDullEnchantment(), 1);
     }
 
     public static void removeDullEnchantment(ItemStack itemStack) {
-        itemStack.removeEnchantment(_enchantment);
+        itemStack.removeEnchantment(getDullEnchantment());
     }
 
-    public static DullEnchantment getDullEnchantment() {
-        return _enchantment;
+    public static Enchantment getDullEnchantment() {
+        return EnchantmentLib.getGlowEnchantment();
     }
 
     public static boolean insert(Player player, ItemStack stack) {

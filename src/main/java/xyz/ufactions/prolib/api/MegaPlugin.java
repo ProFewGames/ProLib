@@ -4,6 +4,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import xyz.ufactions.prolib.ProLib;
 import xyz.ufactions.prolib.api.exception.ModuleEnabledException;
 import xyz.ufactions.prolib.api.exception.ModuleInitializationException;
+import xyz.ufactions.prolib.libs.C;
 import xyz.ufactions.prolib.libs.DummyModule;
 
 import java.util.HashSet;
@@ -93,7 +94,11 @@ public abstract class MegaPlugin extends JavaPlugin {
         return dummy;
     }
 
+    public final void warning(String message) {
+        log(C.mError + message);
+    }
+
     public final void log(String message) {
-        getLogger().info(message);
+        getServer().getConsoleSender().sendMessage(C.mBody + message);
     }
 }

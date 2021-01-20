@@ -29,6 +29,8 @@ public class JedisManager {
 
     private final JedisPool pool;
 
+    private JedisDataListener jedisDataListener;
+
     private JedisManager() {
         pool = Utility.getJedisPool();
         this.commandTypes = new HashMap<>();
@@ -39,38 +41,48 @@ public class JedisManager {
 
     private void initialize() {
         final Jedis jedis = pool.getResource();
+
         Thread thread = new Thread("Jedis Manager") {
+
             @Override
             public void run() {
                 try {
-                    jedis.psubscribe(new JedisDataListener(), CHANNEL + "*");
+                    System.out.println("Subscribing via Jedis.");
+                    jedis.psubscribe(jedisDataListener = new JedisDataListener(), CHANNEL + "*");
+                    System.out.println("Subscription has ended.");
                 } catch (JedisConnectionException e) {
                     e.printStackTrace();
                     pool.returnBrokenResource(jedis);
                 } finally {
-                    if (pool != null) pool.returnResource(jedis);
+                    if (jedis != null) pool.returnResource(jedis);
                 }
             }
         };
         thread.start();
     }
 
+    public void unsubscribe() {
+        if (jedisDataListener != null) {
+            if (jedisDataListener.isSubscribed()) {
+                jedisDataListener.punsubscribe();
+                System.out.println("Unsubscribed from Jedis");
+            }
+        }
+    }
+
     public void publishCommand(final ServerCommand serverCommand) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Jedis jedis = pool.getResource();
-                try {
-                    String commandType = serverCommand.getClass().getSimpleName();
-                    String serializedData = Utility.serialize(serverCommand);
-                    jedis.publish(CHANNEL + commandType, serializedData);
-                } catch (JedisConnectionException e) {
-                    e.printStackTrace();
-                    pool.returnBrokenResource(jedis);
-                    jedis = null;
-                } finally {
-                    if (jedis != null) pool.returnResource(jedis);
-                }
+        new Thread(() -> {
+            Jedis jedis = pool.getResource();
+            try {
+                String commandType = serverCommand.getClass().getSimpleName();
+                String serializedData = Utility.serialize(serverCommand);
+                jedis.publish(CHANNEL + commandType, serializedData);
+            } catch (JedisConnectionException e) {
+                e.printStackTrace();
+                pool.returnBrokenResource(jedis);
+                jedis = null;
+            } finally {
+                if (jedis != null) pool.returnResource(jedis);
             }
         }).start();
     }

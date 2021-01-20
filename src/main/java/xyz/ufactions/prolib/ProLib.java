@@ -12,6 +12,7 @@ import xyz.ufactions.prolib.libs.UtilServer;
 import xyz.ufactions.prolib.monitor.LagMeter;
 import xyz.ufactions.prolib.networking.NetworkModule;
 import xyz.ufactions.prolib.recharge.Recharge;
+import xyz.ufactions.prolib.redis.JedisManager;
 import xyz.ufactions.prolib.redis.Utility;
 import xyz.ufactions.prolib.redis.connect.RedisTransferManager;
 import xyz.ufactions.prolib.redis.data.MinecraftServer;
@@ -33,7 +34,7 @@ public class ProLib extends MegaPlugin {
         if (ProLibConfig.getInstance().autoUpdaterEnabled()) {
             log("Starting plugin updater...");
             try {
-                ProUpdater updater = new ProUpdater(this, this.getDataFolder(),
+                ProUpdater updater = new ProUpdater(this, this.getFile(),
                         ProLibConfig.getInstance().autoUpdaterURL(), ProLibConfig.getInstance().autoUpdaterSecureJar());
                 updater.scheduleUpdater();
             } catch (MegaException | IOException e) {
@@ -82,6 +83,7 @@ public class ProLib extends MegaPlugin {
             if (plugin == this) continue;
             plugin.onDisable(); // Library Logic
         }
+        JedisManager.getInstance().unsubscribe();
         log("Goodbye");
     }
 

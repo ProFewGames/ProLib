@@ -128,6 +128,7 @@ public abstract class FileHandler {
         }
         this.config = YamlConfiguration.loadConfiguration(this.file);
         if (created) create();
+        onReload();
     }
 
     public final void save() throws IOException {
@@ -146,5 +147,11 @@ public abstract class FileHandler {
      * Called when a file is created.
      */
     public void create() {
+    }
+
+    /**
+     * Called when the file is reloaded.
+     */
+    protected void onReload() {
     }
 }

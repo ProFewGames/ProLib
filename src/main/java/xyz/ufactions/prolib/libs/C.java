@@ -1,6 +1,7 @@
 package xyz.ufactions.prolib.libs;
 
 import org.bukkit.ChatColor;
+import xyz.ufactions.prolib.file.ProLibConfig;
 
 public class C {
 
@@ -28,10 +29,10 @@ public class C {
     public static String cWhite = "" + ChatColor.WHITE;
     public static String cYellow = "" + ChatColor.YELLOW;
 
-    public static String mHead = "" + ChatColor.DARK_PURPLE;
-    public static String mBody = "" + ChatColor.LIGHT_PURPLE;
-    public static String mElem = "" + ChatColor.YELLOW;
-    public static String mError = "" + ChatColor.RED;
+    public static String mHead = "" + ProLibConfig.getInstance().getColor(ProLibConfig.ProLibConfigColor.PRIMARY);
+    public static String mBody = "" + ProLibConfig.getInstance().getColor(ProLibConfig.ProLibConfigColor.SECONDARY);
+    public static String mElem = "" + ProLibConfig.getInstance().getColor(ProLibConfig.ProLibConfigColor.ELEMENTAL);
+    public static String mError = "" + ProLibConfig.getInstance().getColor(ProLibConfig.ProLibConfigColor.ERROR);
     public static String mTime = "" + ChatColor.GREEN;
     public static String mSkill = "" + ChatColor.GREEN;
 
