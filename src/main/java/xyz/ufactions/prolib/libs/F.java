@@ -3,6 +3,7 @@ package xyz.ufactions.prolib.libs;
 import org.bukkit.ChatColor;
 
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -136,6 +137,14 @@ public class F {
             }
         }
         return starter;
+    }
+
+    public static <T> List<T> getMatches(T[] list, Operation<T, Boolean> operation) {
+        List<T> matches = new ArrayList<>();
+        for (T t : list)
+            if (operation.execute(t))
+                matches.add(t);
+        return matches;
     }
 
     public static String concatenate(String splitter, List<String> list) {

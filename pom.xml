@@ -54,7 +54,9 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.2.0</version>
                 <configuration>
-                    <outputDirectory>Z:\Library</outputDirectory>
+                    <outputDirectory>
+<!--                        Z:\Library-->
+                    </outputDirectory>
                 </configuration>
             </plugin>
             <plugin>

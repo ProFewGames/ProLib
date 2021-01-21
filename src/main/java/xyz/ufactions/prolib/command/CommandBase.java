@@ -69,25 +69,20 @@ public abstract class CommandBase<PluginType extends Module>
         return null;
     }
 
-    protected List<String> getMatches(String start, List<String> possibleMatches) {
-        if (start.isEmpty()) return possibleMatches;
-        List<String> matches = new ArrayList<>();
-        for (String possibleMatch : possibleMatches) {
-            if (possibleMatch.toLowerCase().startsWith(start.toLowerCase()))
-                matches.add(possibleMatch);
-        }
-        return matches;
-    }
 
     protected List<String> getMatches(String start, Enum<?>[] numerators) {
-        List<String> matches = new ArrayList<>();
+        List<String> names = new ArrayList<>();
         for (Enum<?> e : numerators) {
-            String s = e.toString();
-            if (s.toLowerCase().startsWith(start.toLowerCase()) || start.isEmpty())
-                matches.add(s);
+            names.add(e.toString());
         }
+        return getMatches(start, names);
+    }
 
-        return matches;
+    protected List<String> getMatches(String start, List<String> possibleMatches) {
+        return F.getMatches(possibleMatches.toArray(new String[0]), string -> {
+            if (string.toLowerCase().startsWith(start.toLowerCase())) return true;
+            return false;
+        });
     }
 
     protected List<String> getOfflineMatches(String start) {
