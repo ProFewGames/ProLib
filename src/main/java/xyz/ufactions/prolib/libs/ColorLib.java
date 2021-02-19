@@ -8,7 +8,7 @@ public class ColorLib {
 
     public static ItemBuilder cp(ChatColor color) {
         if (VersionUtils.getVersion() == VersionUtils.Version.V1_8) {
-            return new ItemBuilder(Material.getMaterial("GLASS_PANE"), cbyte(color));
+            return new ItemBuilder(Material.getMaterial("STAINED_GLASS_PANE"), cbyte(color));
         } else {
             if (color == ChatColor.WHITE) return new ItemBuilder(Material.WHITE_STAINED_GLASS_PANE);
             else if (color == ChatColor.GOLD) return new ItemBuilder(Material.ORANGE_STAINED_GLASS_PANE);

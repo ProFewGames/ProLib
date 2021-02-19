@@ -6,6 +6,7 @@ import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.plugin.Plugin;
 import xyz.ufactions.prolib.api.MegaPlugin;
 import xyz.ufactions.prolib.command.internal.AlertCommand;
+import xyz.ufactions.prolib.command.internal.ItemBuilderCommand;
 import xyz.ufactions.prolib.command.internal.LobbyCommand;
 import xyz.ufactions.prolib.command.internal.ModulesCommand;
 import xyz.ufactions.prolib.redis.Utility;
@@ -20,18 +21,21 @@ import java.util.List;
 
 public class CommandCenter {
 
+    private final MegaPlugin plugin;
+
     public static CommandCenter instance;
     private final SimpleCommandMap commandMap;
     protected HashMap<String, ICommand> Commands;
 
-    public static void initialize() {
+    public static void initialize(MegaPlugin plugin) {
         if (instance == null) {
-            instance = new CommandCenter();
+            instance = new CommandCenter(plugin);
         }
     }
 
-    private CommandCenter() {
+    private CommandCenter(MegaPlugin plugin) {
         this.Commands = new HashMap<>();
+        this.plugin = plugin;
         ReflectionUtils.RefClass ClassCraftServer = ReflectionUtils.getRefClass("{cb}.CraftServer");
         ReflectionUtils.RefMethod MethodGetCommandMap = ClassCraftServer.getMethod("getCommandMap");
         this.commandMap = (SimpleCommandMap) MethodGetCommandMap.of(Bukkit.getServer()).call();
@@ -46,6 +50,8 @@ public class CommandCenter {
             commandMap.register("megabukkit", new LobbyCommand());
             commandMap.register("megabukkit", new AlertCommand());
         }
+
+        addCommand(plugin, new ItemBuilderCommand(plugin.getDummy()));
     }
 
     public final HashMap<String, ICommand> getCommands() {

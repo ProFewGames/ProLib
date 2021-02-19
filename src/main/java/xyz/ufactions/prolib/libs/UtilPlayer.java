@@ -149,23 +149,15 @@ public class UtilPlayer {
         return null;
     }
 
-    public static void message(CommandSender sender, LinkedList<String> messageList) {
-        message(sender, messageList, false);
-    }
-
     public static void message(CommandSender sender, String message) {
-        message(sender, message, false);
+        message(sender, message, null);
     }
 
-    public static void message(CommandSender sender, LinkedList<String> messageList, boolean wiki) {
-        for (String curMessage : messageList) {
-            message(sender, curMessage, wiki);
-        }
-    }
-
-    public static void message(CommandSender sender, String message, boolean wiki) {
+    public static void message(CommandSender sender, String message, String permission) {
         if (sender == null)
             return;
+
+        if (permission != null && !sender.hasPermission(permission)) return;
 
         sender.sendMessage(message);
     }
@@ -502,11 +494,18 @@ public class UtilPlayer {
         throw new UnsupportedOperationException("This method still needs to be worked on! Please contact a developer.");
     }
 
+    public static Object getHandle(Player player) {
+        return CraftPlayerMethodGetHandle.of(player).call();
+    }
+
+    public static Object getConnection(Player player) {
+        return EntityPlayerFieldPlayerConnection.of(getHandle(player)).get();
+    }
+
     public static void sendPacket(Player player, Object... packets) {
         Validate.notEmpty(packets, "Packet array empty.");
 
-        Object handle = CraftPlayerMethodGetHandle.of(player).call();
-        Object connection = EntityPlayerFieldPlayerConnection.of(handle).get();
+        Object connection = getConnection(player);
 
         for (Object packet : packets) {
             Validate.isTrue(packet.getClass().isInstance(ClassPacket.getRealClass()), "'" + packet + "' isn't packet.");

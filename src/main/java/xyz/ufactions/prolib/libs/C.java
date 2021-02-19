@@ -41,8 +41,6 @@ public class C {
     public static String listValueOn = "" + ChatColor.GREEN;
     public static String listValueOff = "" + ChatColor.RED;
 
-    public static String chat = "" + ChatColor.WHITE;
-
     public static String color(String string) {
         return ChatColor.translateAlternateColorCodes('&', string);
     }

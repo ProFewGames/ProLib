@@ -5,6 +5,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import xyz.ufactions.prolib.ProLib;
 import xyz.ufactions.prolib.api.Module;
 import xyz.ufactions.prolib.libs.F;
 import xyz.ufactions.prolib.libs.UtilServer;
@@ -25,6 +26,7 @@ public abstract class CommandBase<PluginType extends Module>
     protected String description = "A MegaPlugin provided command.";
     protected PluginType Plugin;
     protected String AliasUsed;
+    protected String permission;
     protected CommandCenter CommandCenter;
 
     public CommandBase(PluginType plugin, String... aliases) {
@@ -38,6 +40,12 @@ public abstract class CommandBase<PluginType extends Module>
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public void setPermission(String permission) {
+        this.permission = permission;
+
+        ProLib.debug("Registered permission: " + permission);
     }
 
     @Override
@@ -60,6 +68,8 @@ public abstract class CommandBase<PluginType extends Module>
     @Override
     public final boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         setAliasUsed(label);
+        if (permission != null && !permission.isEmpty())
+            if (!permissionCheck(sender, permission)) return true;
         execute(sender, args);
         return true;
     }
@@ -79,10 +89,7 @@ public abstract class CommandBase<PluginType extends Module>
     }
 
     protected List<String> getMatches(String start, List<String> possibleMatches) {
-        return F.getMatches(possibleMatches.toArray(new String[0]), string -> {
-            if (string.toLowerCase().startsWith(start.toLowerCase())) return true;
-            return false;
-        });
+        return F.getMatches(possibleMatches.toArray(new String[0]), string -> string.toLowerCase().startsWith(start.toLowerCase()));
     }
 
     protected List<String> getOfflineMatches(String start) {

@@ -84,6 +84,11 @@ public class F {
         return C.listValueOff + "disconnected" + C.mBody;
     }
 
+    public static String yn(boolean var) {
+        if (var) return C.listValueOn + "yes" + C.mBody;
+        return C.listValueOff + "no" + C.mBody;
+    }
+
     public static String ed(boolean var) {
         if (var)
             return C.listValueOn + "enable" + C.mBody;

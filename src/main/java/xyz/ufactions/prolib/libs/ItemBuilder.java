@@ -41,7 +41,7 @@ public class ItemBuilder {
      * @param data     The item's data
      */
     public ItemBuilder(Material material, int amount, int data) {
-        this.item = new ItemStack(material, amount, (short) data);
+        this(new ItemStack(material, amount, (short) data));
     }
 
     /**
@@ -50,6 +50,8 @@ public class ItemBuilder {
      * @param item The item we're building for
      */
     public ItemBuilder(ItemStack item) {
+        Validate.notNull(item, "Item must not be null.");
+
         this.item = item;
     }
 
@@ -125,10 +127,6 @@ public class ItemBuilder {
         return this;
     }
 
-    public Material getMaterial() {
-        return item.getType();
-    }
-
     public ItemStack build() {
         return this.item;
     }
@@ -138,7 +136,7 @@ public class ItemBuilder {
     }
 
     public static void saveToConfig(ItemBuilder item, FileConfiguration config, String path) {
-        config.set(path + ".material", item.getMaterial());
+        config.set(path + ".material", item.build().getType());
         config.set(path + ".data", item.item.getData().getData());
         config.set(path + ".amount", item.item.getAmount());
         config.set(path + ".glow", item.isGlowing());

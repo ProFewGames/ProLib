@@ -6,6 +6,7 @@ import xyz.ufactions.prolib.api.MegaPlugin;
 import xyz.ufactions.prolib.api.exception.MegaException;
 import xyz.ufactions.prolib.autoupdate.ProUpdater;
 import xyz.ufactions.prolib.command.CommandCenter;
+import xyz.ufactions.prolib.command.internal.ItemBuilderCommand;
 import xyz.ufactions.prolib.database.DBPool;
 import xyz.ufactions.prolib.file.ProLibConfig;
 import xyz.ufactions.prolib.libs.UtilServer;
@@ -61,7 +62,7 @@ public class ProLib extends MegaPlugin {
         }
         Recharge.Initialize(this);
         LagMeter.initialize();
-        CommandCenter.initialize();
+        CommandCenter.initialize(this);
         if (Utility.allowRedis()) {
             log("Networking found, enabling managers.");
             ServerStatusManager.initialize(this);
@@ -105,5 +106,9 @@ public class ProLib extends MegaPlugin {
 
     public static boolean debugging() {
         return ProLibConfig.getInstance().debugging();
+    }
+
+    public static void debug(String message) {
+        if (debugging()) System.out.println("[ProLib] [Debug] " + message);
     }
 }

@@ -8,3 +8,6 @@ permissions:
   prolib.networking.notify:
     description: Permission to view network notifications
     default: op
+  prolib.command.itembuilder:
+    description: Item Builder Command
+    default: op
