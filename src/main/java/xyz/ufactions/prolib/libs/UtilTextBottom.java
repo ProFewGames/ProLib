@@ -8,7 +8,7 @@ public class UtilTextBottom
 	public static void display(String text, Player... players)
 	{
 		for(Player player : players) {
-			TitleAPI.sendActionBar(player, text, 2);
+			TitleAPI.getInstance().sendActionBar(player, text, 2);
 		}
 	}
 	

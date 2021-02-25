@@ -55,7 +55,7 @@
                 <version>3.2.0</version>
                 <configuration>
                     <outputDirectory>
-                        D:\Servers\Testing Server\plugins
+                        /home/rick/Servers/plugins
                     </outputDirectory>
                 </configuration>
             </plugin>

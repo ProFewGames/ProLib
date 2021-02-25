@@ -508,7 +508,7 @@ public class UtilPlayer {
         Object connection = getConnection(player);
 
         for (Object packet : packets) {
-            Validate.isTrue(packet.getClass().isInstance(ClassPacket.getRealClass()), "'" + packet + "' isn't packet.");
+            Validate.isTrue(!packet.getClass().isInstance(ClassPacket.getRealClass()), "'" + packet + "' isn't packet.");
             PlayerConnectionMethodSendPacket.of(connection).call(packet);
         }
     }

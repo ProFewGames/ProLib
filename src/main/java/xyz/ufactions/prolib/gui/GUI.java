@@ -15,10 +15,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import xyz.ufactions.prolib.ProLib;
 import xyz.ufactions.prolib.api.Module;
-import xyz.ufactions.prolib.gui.button.IButton;
+import xyz.ufactions.prolib.gui.button.Button;
 import xyz.ufactions.prolib.gui.button.InverseButton;
-import xyz.ufactions.prolib.gui.button.SelfSortingButton;
-import xyz.ufactions.prolib.gui.button.UpdatableButton;
 import xyz.ufactions.prolib.libs.*;
 import xyz.ufactions.prolib.updater.UpdateType;
 import xyz.ufactions.prolib.updater.event.UpdateEvent;
@@ -32,7 +30,7 @@ public abstract class GUI<T extends Module> implements Listener {
         NONE, RAINBOW, PANE;
     }
 
-    private final List<IButton<?>> buttons = new ArrayList<>();
+    private final List<Button<?>> buttons = new ArrayList<>();
     private final GUIFiller filler;
     private ChatColor paneColor = ChatColor.WHITE;
     private Inventory inventory;
@@ -57,9 +55,9 @@ public abstract class GUI<T extends Module> implements Listener {
 
     // Methods
 
-    public final void addButton(IButton<?>... buttons) {
-        for (IButton<?> button : buttons) {
-            button.setOpener(this);
+    public final void addButton(Button<?>... buttons) {
+        for (Button<?> button : buttons) {
+            button.setGUI(this);
             this.buttons.add(button);
         }
     }
@@ -80,7 +78,7 @@ public abstract class GUI<T extends Module> implements Listener {
         // TODO
     }
 
-    public final void openInventory(Player player) {
+    public final synchronized void openInventory(Player player) {
         if (canOpenInventory(player)) {
             preInventoryOpen(player);
             player.openInventory(getInventory());
@@ -118,12 +116,10 @@ public abstract class GUI<T extends Module> implements Listener {
         } else {
             int max = 0;
             int selfSortingButtons = 0;
-            for (IButton<?> button : buttons) {
-                if (button instanceof SelfSortingButton<?>) {
+            for (Button<?> button : buttons) {
+                if (button.isSelfSorting()) {
                     selfSortingButtons++;
-                    continue;
-                }
-                if (button.getSlot() > max) {
+                } else if (button.getSlot() > max) {
                     max = button.getSlot();
                 }
             }
@@ -132,26 +128,27 @@ public abstract class GUI<T extends Module> implements Listener {
 
             this.inventory = Bukkit.createInventory(null, max, name);
         }
+        onInventoryBaked();
     }
 
     private void seatButtons() {
         inventory.clear();
 
-        List<IButton<?>> buttons = this.buttons.subList(index * 45,
+        List<Button<?>> buttons = this.buttons.subList(index * 45,
                 Math.min(45 + (index * 45), this.buttons.size()));
-        List<SelfSortingButton<?>> selfSortingButtons = new ArrayList<>(); // Add these to the inventory last
+        List<Button<?>> selfSortingButtons = new ArrayList<>(); // Add these to the inventory last
 
         ProLib.debug(inventory.getSize() + ":" + this.buttons.size() + ":" + buttons.size());
 
-        for (IButton<?> button : buttons) {
-            if (button instanceof SelfSortingButton<?>) {
-                selfSortingButtons.add((SelfSortingButton<?>) button);
+        for (Button<?> button : buttons) {
+            if (button.isSelfSorting()) {
+                selfSortingButtons.add(button);
                 continue;
             }
             inventory.setItem(button.getSlot(), button.getItem());
         }
 
-        for (SelfSortingButton<?> button : selfSortingButtons) {
+        for (Button<?> button : selfSortingButtons) {
             if (inventory.firstEmpty() == -1) {
                 ProLib.debug("Insufficient space for a self-sorting button.");
                 break;
@@ -166,6 +163,12 @@ public abstract class GUI<T extends Module> implements Listener {
                     "Next Page").lore("* Click to get to the next page. *").glow(true).build();
             inventory.setItem(48, previous);
             inventory.setItem(50, next);
+        }
+
+        if (filler == GUIFiller.PANE) {
+            for (int i = 0; i < inventory.getSize(); i++)
+                if (inventory.getItem(i) == null)
+                    inventory.setItem(i, ColorLib.cp(paneColor).name(" ").build());
         }
     }
 
@@ -214,7 +217,7 @@ public abstract class GUI<T extends Module> implements Listener {
                     }
                 }
             }
-            for (IButton<?> button : buttons) {
+            for (Button<?> button : buttons) {
                 if (item.equals(button.getItem())) {
                     if (button instanceof InverseButton) {
                         if (!((InverseButton<?>) button).canInverse((Player) e.getWhoClicked())) {
@@ -235,18 +238,19 @@ public abstract class GUI<T extends Module> implements Listener {
     }
 
     @EventHandler
-    public void updateButtons(UpdateEvent e) {
-        if (e.getType() != UpdateType.FAST) return;
+    public final void updateButtons(UpdateEvent e) {
+        if (e.getType() != UpdateType.TICK) return;
 
-        for (IButton<?> button : buttons) {
-            if (button instanceof UpdatableButton<?>) {
-                inventory.setItem(button.getSlot(), button.getItem());
-            }
+        for (Button<?> button : buttons) {
+            if (button.getRefreshTime() <= -1) continue;
+            if (!UtilTime.elapsed(button.getLastUpdated(), button.getRefreshTime())) continue;
+            inventory.setItem(button.getSlot(), button.getItem());
+            button.setLastUpdated(System.currentTimeMillis());
         }
     }
 
     @EventHandler
-    public void updatePanels(UpdateEvent e) {
+    public final void updatePanels(UpdateEvent e) {
         if (e.getType() != UpdateType.FAST) return;
 
         if (filler == GUIFiller.RAINBOW) {
@@ -261,7 +265,7 @@ public abstract class GUI<T extends Module> implements Listener {
 
     // Abstract Methods
 
-    public void onClick(Player player, IButton<?> button) {
+    public void onClick(Player player, Button<?> button) {
     }
 
     public boolean canClose(Player player) {
@@ -279,6 +283,9 @@ public abstract class GUI<T extends Module> implements Listener {
     }
 
     public void onInventoryOpen(Player player) {
+    }
+
+    public void onInventoryBaked() {
     }
 
     public void register() {

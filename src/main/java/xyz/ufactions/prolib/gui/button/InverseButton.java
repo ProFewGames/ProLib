@@ -4,15 +4,20 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import xyz.ufactions.prolib.api.Module;
 
-public abstract class InverseButton<T extends Module> extends IButton<T> {
+public abstract class InverseButton<T extends Module> extends Button<T> {
 
     protected boolean inverse = false;
-    private final int slot;
+
+    public InverseButton(T plugin) {
+        super(plugin);
+    }
 
     public InverseButton(T plugin, int slot) {
-        super(plugin);
+        super(plugin, null, slot);
+    }
 
-        this.slot = slot;
+    public InverseButton(T plugin, long refreshTime, int slot) {
+        super(plugin, null, refreshTime, slot);
     }
 
     public final boolean isInversed() {
@@ -36,10 +41,5 @@ public abstract class InverseButton<T extends Module> extends IButton<T> {
     @Override
     public final ItemStack getItem() {
         return getInverse(inverse);
-    }
-
-    @Override
-    public int getSlot() {
-        return slot;
     }
 }
