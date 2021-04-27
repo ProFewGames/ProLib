@@ -38,7 +38,7 @@ public class ProLibConfig extends FileHandler {
     private Map<ProLibConfigColor, ChatColor> map = new HashMap<>();
 
     private ProLibConfig(MegaPlugin plugin) {
-        super(plugin, "config.yml", plugin.getDataFolder(), "config.yml");
+        super(plugin, plugin.getDataFolder(), "config.yml");
     }
 
     public boolean autoUpdaterEnabled() {
@@ -63,6 +63,10 @@ public class ProLibConfig extends FileHandler {
 
     public boolean debugging() {
         return getBoolean("debugging", false);
+    }
+
+    public boolean customGUI() {
+        return getBoolean("custom-gui", false);
     }
 
     public ChatColor getColor(ProLibConfigColor path) {

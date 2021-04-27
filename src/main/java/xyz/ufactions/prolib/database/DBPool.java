@@ -1,6 +1,7 @@
 package xyz.ufactions.prolib.database;
 
-import org.apache.commons.dbcp2.BasicDataSource;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -12,19 +13,17 @@ import java.util.Map;
 public final class DBPool {
 
     private static DataSource openDataSource(String url, String username, String password) {
-        BasicDataSource source = new BasicDataSource();
-        source.addConnectionProperty("autoReconnect", "true");
-        source.addConnectionProperty("allowMultiQueries", "true");
-        source.setDefaultTransactionIsolation(2);
-        source.setDriverClassName("com.mysql.jdbc.Driver");
-        source.setUrl(url);
-        source.setUsername(username);
-        source.setPassword(password);
-        source.setMaxTotal(4);
-        source.setMaxIdle(4);
-        source.setTimeBetweenEvictionRunsMillis(180000L);
-        source.setSoftMinEvictableIdleTimeMillis(180000L);
-        return source;
+        HikariConfig config = new HikariConfig();
+        config.setDriverClassName("com.mysql.jdbc.Driver");
+        config.setJdbcUrl(url);
+        config.setUsername(username);
+        config.setPassword(password);
+        config.setConnectionTimeout(18000L);
+        config.setIdleTimeout(18000L);
+        config.setMaxLifetime(18000L);
+        config.setMaximumPoolSize(4);
+        config.setMinimumIdle(4);
+        return new HikariDataSource(config);
     }
 
     private static File file;

@@ -5,6 +5,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import xyz.ufactions.prolib.api.MegaPlugin;
 import xyz.ufactions.prolib.api.exception.MegaException;
 import xyz.ufactions.prolib.autoupdate.ProUpdater;
+import xyz.ufactions.prolib.cg.CustomGUI;
 import xyz.ufactions.prolib.command.CommandCenter;
 import xyz.ufactions.prolib.database.DBPool;
 import xyz.ufactions.prolib.file.ProLibConfig;
@@ -18,6 +19,7 @@ import xyz.ufactions.prolib.redis.connect.RedisTransferManager;
 import xyz.ufactions.prolib.redis.data.MinecraftServer;
 import xyz.ufactions.prolib.redis.shutdown.ShutdownManager;
 import xyz.ufactions.prolib.redis.status.ServerStatusManager;
+import xyz.ufactions.prolib.script.ScriptManager;
 import xyz.ufactions.prolib.updater.Updater;
 import xyz.ufactions.prolib.updater.exception.UpdaterInitializationException;
 
@@ -62,6 +64,7 @@ public class ProLib extends MegaPlugin {
         Recharge.Initialize(this);
         LagMeter.initialize();
         CommandCenter.initialize(this);
+        addModule("Script Manager", ScriptManager.class);
         if (Utility.allowRedis()) {
             log("Networking found, enabling managers.");
             ServerStatusManager.initialize(this);
@@ -72,6 +75,9 @@ public class ProLib extends MegaPlugin {
                 log(server.getName());
             }
             addModule("Networking", NetworkModule.class);
+        }
+        if (ProLibConfig.getInstance().customGUI()) {
+            addModule("GUI Customizer", CustomGUI.class);
         }
         log("Initialized Server Logistics/Mechanics");
     }
@@ -108,6 +114,10 @@ public class ProLib extends MegaPlugin {
     }
 
     public static void debug(String message) {
-        if (debugging()) System.out.println("[ProLib] [Debug] " + message);
+        debug("Unknown", message);
+    }
+
+    public static void debug(String module, String message) {
+        if (debugging()) System.out.println("[ProLib] [Debug] [" + module + "] " + message);
     }
 }

@@ -39,8 +39,11 @@ public abstract class GUIFuture<T extends Module, K> extends GUI<T> {
 
     public final K getThrown() {
         try {
-            return get();
-        } catch (InterruptedException | TimeoutException | ExecutionException e) {
+            try {
+                return get();
+            } catch (TimeoutException ignored) {
+            }
+        } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
         return null;
@@ -48,8 +51,11 @@ public abstract class GUIFuture<T extends Module, K> extends GUI<T> {
 
     public final K getThrown(long timeout) {
         try {
-            return get(timeout);
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            try {
+                return get(timeout);
+            } catch (TimeoutException ignored) {
+            }
+        } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
         return null;

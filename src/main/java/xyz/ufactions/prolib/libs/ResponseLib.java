@@ -70,7 +70,7 @@ public class ResponseLib {
 
     public void responseInteger(final Callback<Integer> callback, final Module plugin, final Player player) {
         player.closeInventory();
-        new GUI<Module>(plugin, "Select a number", 37, GUI.GUIFiller.PANE) {
+        new GUI<Module>(plugin, "Select a number", 36, GUI.GUIFiller.PANE) {
 
             private final AtomicInteger integer = new AtomicInteger(0);
 
@@ -93,9 +93,9 @@ public class ResponseLib {
                     }
                 });
 
-                for (int i = 1; i < 3; i++) {
-                    final int interval = i * 5;
-                    addButton(new InverseButton<Module>(plugin, -1, 12 + (i * 2)) {
+                for (int i = 1; i < 4; ++i) {
+                    final int interval = i == 1 ? 1 : i == 2 ? 5 : 10;
+                    addButton(new InverseButton<Module>(plugin, -1, 18 + (i * 2)) {
 
                         @Override
                         public void onClick(Player player, ClickType type) {

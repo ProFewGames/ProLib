@@ -30,3 +30,7 @@ formatting:
   secondary: 'LIGHT_PURPLE'
   elemental: 'YELLOW'
   error: 'RED'
+
+# Enabling this will add support for GUI's or "custom gui's" to be and linked via
+# a configuration file.
+custom-gui: false

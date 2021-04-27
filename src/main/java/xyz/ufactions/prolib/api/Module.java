@@ -6,9 +6,9 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.scheduler.BukkitScheduler;
+import xyz.ufactions.prolib.api.exception.ModuleEnabledException;
 import xyz.ufactions.prolib.command.CommandCenter;
 import xyz.ufactions.prolib.command.ICommand;
-import xyz.ufactions.prolib.api.exception.ModuleEnabledException;
 import xyz.ufactions.prolib.libs.C;
 import xyz.ufactions.prolib.libs.F;
 import xyz.ufactions.prolib.libs.UtilTime;
@@ -40,7 +40,9 @@ public abstract class Module implements Listener {
     }
 
     public File getDataFolder() {
-        return new File(this.Plugin.getDataFolder(), "/" + this.ModuleName);
+        File file = new File(this.Plugin.getDataFolder(), "/" + this.ModuleName);
+        if (!file.exists()) file.mkdirs();
+        return file;
     }
 
     public void registerEvents(Listener listener) {
@@ -75,7 +77,8 @@ public abstract class Module implements Listener {
         log("Disabled.");
     }
 
-    public abstract void enable();
+    public void enable() {
+    }
 
     public void disable() {
     }

@@ -31,24 +31,16 @@ public class EnchantmentPickerGUI extends GUIFuture<Module, List<EnchantmentPick
 
                 @Override
                 public void onClick(Player player, ClickType clickType) {
-                    ResponseLib.getInstance().responseInteger(level -> {
-                        enchantments.add(new EnchantmentInformation(enchantment, level));
-                        openInventory(player);
-                    }, plugin, player);
+                    if (clickType == ClickType.SHIFT_LEFT)
+                        complete(enchantments);
+                    else
+                        ResponseLib.getInstance().responseInteger(level -> {
+                            enchantments.add(new EnchantmentInformation(enchantment, level));
+                            openInventory(player);
+                        }, plugin, player);
                 }
             });
         }
-    }
-
-    @Override
-    public void onInventoryBaked() {
-        addButton(new Button<Module>(Plugin, new ItemBuilder(Material.BOOK).name("Exit"), getInventory().getSize() - 1) {
-
-            @Override
-            public void onClick(Player player, ClickType clickType) {
-                complete(enchantments);
-            }
-        });
     }
 
     public static class EnchantmentInformation {

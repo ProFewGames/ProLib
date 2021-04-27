@@ -11,7 +11,6 @@ import xyz.ufactions.prolib.updater.event.UpdateEvent;
 import javax.sql.DataSource;
 import java.sql.*;
 import java.util.HashMap;
-import java.util.Iterator;
 
 public abstract class RepositoryBase implements Listener {
     // Queue for failed processes

@@ -1,0 +1,21 @@
+filler: PANE
+color: AQUA
+name: '&1&lMASTER GUI'
+slots: 36
+command: custom_gui
+permission: custom_gui.mastergui
+buttons:
+  subbutton:
+    slot: 15
+    refreshTime: -1
+    material: DIAMOND_SWORD
+    data: 0
+    amount: 1
+    glow: true
+    name: '&3&lSub-GUI'
+    enchantments: []
+    lore:
+      - '&7&o* Click to open the sub-gui *'
+    action:
+      - '<open gui="SubGUI.yml">'
+      - 'tell %player% Opening sub-gui from master gui'

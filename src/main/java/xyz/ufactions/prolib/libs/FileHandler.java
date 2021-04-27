@@ -3,10 +3,12 @@ package xyz.ufactions.prolib.libs;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import xyz.ufactions.prolib.ProLib;
 import xyz.ufactions.prolib.api.MegaPlugin;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.NotDirectoryException;
 import java.util.List;
 
@@ -15,7 +17,6 @@ public abstract class FileHandler {
     protected final MegaPlugin plugin;
     protected final String fileName;
     private final File directory;
-    private final String resourcePath;
     private File file;
     private FileConfiguration config;
 
@@ -24,14 +25,9 @@ public abstract class FileHandler {
     }
 
     public FileHandler(MegaPlugin plugin, File directory, String fileName) {
-        this(plugin, null, directory, fileName);
-    }
-
-    public FileHandler(MegaPlugin plugin, String resourcePath, File directory, String fileName) {
         this.plugin = plugin;
         this.fileName = fileName;
         this.directory = directory;
-        this.resourcePath = resourcePath;
         this.reload();
     }
 
@@ -118,10 +114,26 @@ public abstract class FileHandler {
         this.file = new File(this.directory, this.fileName);
         boolean created = false;
         if (!file.exists()) {
-            if (this.resourcePath != null) {
-                if (plugin.getResource(resourcePath) != null) {
-                    plugin.getLogger().info("Attempting to create '" + this.fileName + "' from resources.");
-                    plugin.saveResource(resourcePath, false);
+            URL url = plugin.getClass().getClassLoader().getResource(fileName);
+            if (url != null) {
+                plugin.getLogger().info("Attempting to create '" + this.fileName + "' from resources.");
+                try {
+                    URLConnection connection = url.openConnection();
+                    connection.setUseCaches(false);
+                    InputStream in = connection.getInputStream();
+
+                    OutputStream out = new FileOutputStream(file);
+                    byte[] buf = new byte[1024];
+
+                    int len;
+                    while ((len = in.read(buf)) > 0) {
+                        out.write(buf, 0, len);
+                    }
+                    out.close();
+                    in.close();
+                } catch (IOException e) {
+                    ProLib.debug("Failed to create file from resources.");
+                    if (ProLib.debugging()) e.printStackTrace();
                 }
             }
             created = true;

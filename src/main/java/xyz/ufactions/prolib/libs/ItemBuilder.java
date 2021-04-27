@@ -100,7 +100,7 @@ public class ItemBuilder {
 
     public ItemBuilder name(String name) {
         ItemMeta meta = this.item.getItemMeta();
-        meta.setDisplayName(cc((name.startsWith("&") ? "&f" : "") + name));
+        meta.setDisplayName(cc((name.startsWith("&") ? "" : "&f") + name));
         this.item.setItemMeta(meta);
         return this;
     }

@@ -4,11 +4,13 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.plugin.Plugin;
+import xyz.ufactions.prolib.ProLib;
 import xyz.ufactions.prolib.api.MegaPlugin;
 import xyz.ufactions.prolib.command.internal.AlertCommand;
 import xyz.ufactions.prolib.command.internal.ItemBuilderCommand;
 import xyz.ufactions.prolib.command.internal.LobbyCommand;
 import xyz.ufactions.prolib.command.internal.ModulesCommand;
+import xyz.ufactions.prolib.libs.F;
 import xyz.ufactions.prolib.redis.Utility;
 import xyz.ufactions.prolib.reflection.ReflectionUtils;
 
@@ -64,6 +66,7 @@ public class CommandCenter {
             this.Commands.put(commandRoot.toLowerCase(), command);
             command.setCommandCenter(this);
         }
+        ProLib.debug("(COMMAND) " + F.concatenate(", ", command.aliases().toArray(new String[0])) + " registered.");
     }
 
     public void removeCommand(ICommand command) {

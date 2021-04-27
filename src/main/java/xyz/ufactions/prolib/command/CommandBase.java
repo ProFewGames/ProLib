@@ -23,6 +23,8 @@ public abstract class CommandBase<PluginType extends Module>
         implements ICommand {
 
     private final List<String> aliases;
+    private final List<CommandSubBase<PluginType>> subCommands;
+
     protected String description = "A MegaPlugin provided command.";
     protected PluginType Plugin;
     protected String AliasUsed;
@@ -31,38 +33,8 @@ public abstract class CommandBase<PluginType extends Module>
 
     public CommandBase(PluginType plugin, String... aliases) {
         this.Plugin = plugin;
+        this.subCommands = new ArrayList<>();
         this.aliases = Arrays.asList(aliases);
-    }
-
-    public Collection<String> aliases() {
-        return this.aliases;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public void setPermission(String permission) {
-        this.permission = permission;
-
-        ProLib.debug("Registered permission: " + permission);
-    }
-
-    @Override
-    public String description() {
-        return description;
-    }
-
-    public void setAliasUsed(String aliasUsed) {
-        this.AliasUsed = aliasUsed;
-    }
-
-    public void setCommandCenter(CommandCenter commandCenter) {
-        this.CommandCenter = commandCenter;
-    }
-
-    protected void resetCommandCharge(Player caller) {
-        Recharge.Instance.recharge(caller, "Command");
     }
 
     @Override
@@ -70,6 +42,16 @@ public abstract class CommandBase<PluginType extends Module>
         setAliasUsed(label);
         if (permission != null && !permission.isEmpty())
             if (!permissionCheck(sender, permission)) return true;
+        if (args.length == 1) {
+            for (CommandSubBase<PluginType> command : subCommands) {
+                for (String alias : command.aliases()) {
+                    if (alias.equalsIgnoreCase(args[0])) {
+                        command.onCommand(sender, cmd, label, args);
+                        return true;
+                    }
+                }
+            }
+        }
         execute(sender, args);
         return true;
     }
@@ -78,7 +60,6 @@ public abstract class CommandBase<PluginType extends Module>
     public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
         return null;
     }
-
 
     protected List<String> getMatches(String start, Enum<?>[] numerators) {
         List<String> names = new ArrayList<>();
@@ -156,4 +137,39 @@ public abstract class CommandBase<PluginType extends Module>
     }
 
     protected abstract void execute(CommandSender sender, String[] args);
+
+    public final void registerSubCommand(CommandSubBase<PluginType> commandSubBase) {
+        this.subCommands.add(commandSubBase);
+    }
+
+    public Collection<String> aliases() {
+        return this.aliases;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    @Override
+    public String description() {
+        return description;
+    }
+
+    public void setPermission(String permission) {
+        this.permission = permission;
+
+        ProLib.debug("Registered permission: " + permission);
+    }
+
+    public void setAliasUsed(String aliasUsed) {
+        this.AliasUsed = aliasUsed;
+    }
+
+    public void setCommandCenter(CommandCenter commandCenter) {
+        this.CommandCenter = commandCenter;
+    }
+
+    protected void resetCommandCharge(Player caller) {
+        Recharge.Instance.recharge(caller, "Command");
+    }
 }

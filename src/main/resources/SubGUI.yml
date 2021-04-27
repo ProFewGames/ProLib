@@ -1,0 +1,17 @@
+filler: PANE
+color: LIGHT_PURPLE
+name: '&1&lSUB-GUI'
+slots: 36
+buttons:
+  getiron:
+    slot: 15
+    material: IRON_INGOT
+    data: 0
+    amount: 10
+    glow: true
+    name: '&1&lGet 10x Iron'
+    enchantments: []
+    lore:
+      - '&7&o* Click to get iron *'
+    action:
+      - 'give %player% iron_ingot 10'
