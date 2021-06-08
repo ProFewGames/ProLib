@@ -6,6 +6,7 @@ import org.bukkit.event.EventHandler;
 import xyz.ufactions.prolib.api.Module;
 import xyz.ufactions.prolib.file.ProLibConfig;
 import xyz.ufactions.prolib.libs.F;
+import xyz.ufactions.prolib.libs.FileHandler;
 import xyz.ufactions.prolib.libs.UtilPlayer;
 import xyz.ufactions.prolib.libs.UtilServer;
 import xyz.ufactions.prolib.networking.command.HubCommand;
@@ -15,6 +16,7 @@ import xyz.ufactions.prolib.networking.event.NetworkServerStatusChangeEvent;
 import xyz.ufactions.prolib.redis.Utility;
 import xyz.ufactions.prolib.redis.connect.RedisTransferManager;
 import xyz.ufactions.prolib.redis.data.MinecraftServer;
+import xyz.ufactions.prolib.script.ScriptManager;
 import xyz.ufactions.prolib.updater.UpdateType;
 import xyz.ufactions.prolib.updater.event.UpdateEvent;
 
@@ -24,6 +26,8 @@ public class NetworkModule extends Module {
 
     private String serverName;
 
+    private FileHandler<?> serverGUIFile;
+
     private Collection<MinecraftServer> servers;
     private Set<String> transferring;
 
@@ -31,10 +35,15 @@ public class NetworkModule extends Module {
     public void enable() {
         if (Utility.allowRedis()) {
             this.transferring = new HashSet<>();
-            this.serverName = ProLibConfig.getInstance().serverName();
-            this.servers = new HashSet<>();
+            this.serverName = ProLibConfig.getInstance().getServerName();
+            this.servers = Utility.getServerRepository().getServerStatuses();
+            this.serverGUIFile = FileHandler.instance(this, getDataFolder(), "servergui.yml");
 
-            registerSelf();
+            registerEvents(this);
+
+            for (MinecraftServer server : this.servers) {
+                registerScript(server);
+            }
 
             addCommand(new ServerCommand(this));
             addCommand(new SendCommand(this));
@@ -69,6 +78,18 @@ public class NetworkModule extends Module {
             }
         }
         return difference;
+    }
+
+    private void registerScript(MinecraftServer server) {
+        ScriptManager.getInstance().registerScript("server_" + server.getName() + "_tps", (player, script) -> String.valueOf(Utility.getServerRepository().getServerStatus(server.getName()).getTPS()));
+        ScriptManager.getInstance().registerScript("server_" + server.getName() + "_players", (player, script) -> String.valueOf(Utility.getServerRepository().getServerStatus(server.getName()).getPlayerCount()));
+        ScriptManager.getInstance().registerScript("server_" + server.getName() + "_maxplayers", (player, script) -> String.valueOf(Utility.getServerRepository().getServerStatus(server.getName()).getMaxPlayerCount()));
+        ScriptManager.getInstance().registerScript("server_" + server.getName() + "_port", (player, script) -> String.valueOf(Utility.getServerRepository().getServerStatus(server.getName()).getPort()));
+        ScriptManager.getInstance().registerScript("server_" + server.getName() + "_ram", (player, script) -> String.valueOf(Utility.getServerRepository().getServerStatus(server.getName()).getRam()));
+        ScriptManager.getInstance().registerScript("server_" + server.getName() + "_maxram", (player, script) -> String.valueOf(Utility.getServerRepository().getServerStatus(server.getName()).getMaxRam()));
+        ScriptManager.getInstance().registerScript("server_" + server.getName() + "_lastping", (player, script) -> String.valueOf(Utility.getServerRepository().getServerStatus(server.getName()).getLastCheckup()));
+        ScriptManager.getInstance().registerScript("server_" + server.getName() + "_motd", (player, script) -> Utility.getServerRepository().getServerStatus(server.getName()).getMotd());
+        ScriptManager.getInstance().registerScript("server_" + server.getName() + "_ip", (player, script) -> Utility.getServerRepository().getServerStatus(server.getName()).getPublicAddress());
     }
 
     // Events
@@ -110,6 +131,24 @@ public class NetworkModule extends Module {
         }
 
         this.servers = postServers;
+    }
+
+    @EventHandler
+    public void onStatusChange(NetworkServerStatusChangeEvent e) {
+        MinecraftServer server = e.getServer();
+        if (e.getStatus() == NetworkServerStatusChangeEvent.ServerStatus.ADDED) {
+            registerScript(server);
+        } else if (e.getStatus() == NetworkServerStatusChangeEvent.ServerStatus.REMOVED) {
+            ScriptManager.getInstance().unregisterScript("server_" + server.getName() + "_tps");
+            ScriptManager.getInstance().unregisterScript("server_" + server.getName() + "_players");
+            ScriptManager.getInstance().unregisterScript("server_" + server.getName() + "_maxplayers");
+            ScriptManager.getInstance().unregisterScript("server_" + server.getName() + "_port");
+            ScriptManager.getInstance().unregisterScript("server_" + server.getName() + "_ram");
+            ScriptManager.getInstance().unregisterScript("server_" + server.getName() + "_maxram");
+            ScriptManager.getInstance().unregisterScript("server_" + server.getName() + "_lastping");
+            ScriptManager.getInstance().unregisterScript("server_" + server.getName() + "_motd");
+            ScriptManager.getInstance().unregisterScript("server_" + server.getName() + "_ip");
+        }
     }
 
     // Getters
@@ -172,5 +211,9 @@ public class NetworkModule extends Module {
 
     public String getServerName() {
         return serverName;
+    }
+
+    public FileHandler<?> getServerGUIFile() {
+        return serverGUIFile;
     }
 }

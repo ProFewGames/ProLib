@@ -1,5 +1,6 @@
 package xyz.ufactions.prolib.gui;
 
+import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -13,21 +14,30 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import xyz.ufactions.prolib.ProLib;
-import xyz.ufactions.prolib.api.Module;
+import xyz.ufactions.prolib.api.IModule;
 import xyz.ufactions.prolib.gui.button.Button;
 import xyz.ufactions.prolib.gui.button.InverseButton;
 import xyz.ufactions.prolib.libs.*;
 import xyz.ufactions.prolib.updater.UpdateType;
 import xyz.ufactions.prolib.updater.event.UpdateEvent;
+import xyz.ufactions.prolib.version.VersionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class GUI<T extends Module> implements Listener {
+public abstract class GUI<T extends IModule> implements Listener {
 
     public enum GUIFiller {
         NONE, RAINBOW, PANE;
+    }
+
+    public enum GUIAction {
+        REGISTER,
+        CLICK,
+        CLOSE,
+        POST_OPEN,
+        PRE_OPEN,
+        BAKE
     }
 
     private final List<Button<?>> buttons = new ArrayList<>();
@@ -36,7 +46,9 @@ public abstract class GUI<T extends Module> implements Listener {
     private Inventory inventory;
     private final String name;
     protected GUI<?> returnGUI;
+    @Deprecated
     protected final T Plugin;
+    protected final T plugin;
 
     private int size;
     private int index = 0; // Used for paging
@@ -47,10 +59,11 @@ public abstract class GUI<T extends Module> implements Listener {
 
     public GUI(T plugin, String name, int size, GUIFiller filler) {
         this.Plugin = plugin;
+        this.plugin = this.Plugin;
         this.name = name;
         this.size = size;
         this.filler = filler;
-        register();
+        onActionPerformed(GUIAction.REGISTER, null);
     }
 
     // Methods
@@ -71,6 +84,8 @@ public abstract class GUI<T extends Module> implements Listener {
     }
 
     public final void setReturnGUI(GUI<?> returnGUI) {
+        Validate.notNull(returnGUI);
+
         this.returnGUI = returnGUI;
     }
 
@@ -78,9 +93,14 @@ public abstract class GUI<T extends Module> implements Listener {
         // TODO
     }
 
+    public final void openInventory(Player player, GUI<?> from) {
+        if (from != null) setReturnGUI(from);
+        openInventory(player);
+    }
+
     public final synchronized void openInventory(Player player) {
         if (canOpenInventory(player)) {
-            preInventoryOpen(player);
+            onActionPerformed(GUIAction.PRE_OPEN, player);
             player.openInventory(getInventory());
             Plugin.getServer().getPluginManager().registerEvents(this, Plugin.getPlugin());
             Plugin.getServer().getPluginManager().registerEvents(new Listener() {
@@ -93,7 +113,7 @@ public abstract class GUI<T extends Module> implements Listener {
                     }
                 }
             }, Plugin.getPlugin());
-            onInventoryOpen(player);
+            onActionPerformed(GUIAction.POST_OPEN, player);
         }
     }
 
@@ -128,7 +148,7 @@ public abstract class GUI<T extends Module> implements Listener {
 
             this.inventory = Bukkit.createInventory(null, max, name);
         }
-        onInventoryBaked();
+        onActionPerformed(GUIAction.BAKE, null);
     }
 
     private void seatButtons() {
@@ -137,8 +157,6 @@ public abstract class GUI<T extends Module> implements Listener {
         List<Button<?>> buttons = this.buttons.subList(index * 45,
                 Math.min(45 + (index * 45), this.buttons.size()));
         List<Button<?>> selfSortingButtons = new ArrayList<>(); // Add these to the inventory last
-
-        ProLib.debug(inventory.getSize() + ":" + this.buttons.size() + ":" + buttons.size());
 
         for (Button<?> button : buttons) {
             if (button.isSelfSorting()) {
@@ -150,7 +168,7 @@ public abstract class GUI<T extends Module> implements Listener {
 
         for (Button<?> button : selfSortingButtons) {
             if (inventory.firstEmpty() == -1) {
-                ProLib.debug("Insufficient space for a self-sorting button.");
+                Plugin.debug("Insufficient space for a self-sorting button.");
                 break;
             }
             inventory.setItem(inventory.firstEmpty(), button.getItem());
@@ -182,7 +200,7 @@ public abstract class GUI<T extends Module> implements Listener {
                 return;
             }
             HandlerList.unregisterAll(this);
-            onClose((Player) e.getPlayer());
+            onActionPerformed(GUIAction.CLOSE, (Player) e.getPlayer());
             if (returnGUI != null) {
                 Plugin.getScheduler().runTaskLater(Plugin.getPlugin(), () -> returnGUI.openInventory((Player) e.getPlayer()), 1L);
             }
@@ -225,7 +243,7 @@ public abstract class GUI<T extends Module> implements Listener {
                         }
                     }
                     button.onClick((Player) e.getWhoClicked(), e.getClick());
-                    onClick((Player) e.getWhoClicked(), button);
+                    onActionPerformed(GUIAction.CLICK, (Player) e.getWhoClicked());
                     if (button instanceof InverseButton) {
                         if (((InverseButton<?>) button).canInverse((Player) e.getWhoClicked())) {
                             ((InverseButton<?>) button).reverse();
@@ -256,38 +274,26 @@ public abstract class GUI<T extends Module> implements Listener {
         if (filler == GUIFiller.RAINBOW) {
             for (int i = 0; i < getInventory().getSize(); i++) {
                 ItemStack item = inventory.getItem(i);
-                if (item == null || item.getType().data.equals(GlassPane.class)) {
-                    inventory.setItem(i, ColorLib.cp(ColorLib.randomColor()).name(" ").build());
+                if (VersionUtils.getVersion().greaterOrEquals(VersionUtils.Version.V1_9)) {
+                    if (item != null && !item.getType().data.equals(GlassPane.class)) continue;
+                } else {
+                    if (item != null && item.getType() != Material.getMaterial("STAINED_GLASS_PANE")) continue;
                 }
+                inventory.setItem(i, ColorLib.cp(ColorLib.randomColor()).name(" ").build());
             }
         }
     }
 
     // Abstract Methods
 
-    public void onClick(Player player, Button<?> button) {
-    }
-
     public boolean canClose(Player player) {
         return true;
-    }
-
-    public void onClose(Player player) {
     }
 
     public boolean canOpenInventory(Player player) {
         return true;
     }
 
-    public void preInventoryOpen(Player player) {
-    }
-
-    public void onInventoryOpen(Player player) {
-    }
-
-    public void onInventoryBaked() {
-    }
-
-    public void register() {
+    public void onActionPerformed(GUIAction action, Player player) {
     }
 }

@@ -22,11 +22,11 @@ public class HubCommand extends CommandBase<NetworkModule> {
     protected void execute(CommandSender sender, String[] args) {
         if(isPlayer(sender)) {
             Player player = (Player) sender;
-            if(Plugin.isTransferring(player.getName())) {
-                UtilPlayer.message(player, F.error(Plugin.getName(), "You are already transferring!"));
+            if(plugin.isTransferring(player.getName())) {
+                UtilPlayer.message(player, F.error(plugin.getName(), "You are already transferring!"));
                 return;
             }
-            Plugin.transfer(player.getName(), ProLibConfig.getInstance().fallbackServer());
+            plugin.transfer(player.getName(), ProLibConfig.getInstance().getFallbackServer());
         }
     }
 

@@ -4,7 +4,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import xyz.ufactions.prolib.ProLib;
-import xyz.ufactions.prolib.api.MegaPlugin;
+import xyz.ufactions.prolib.api.IModule;
 
 import java.io.*;
 import java.net.URL;
@@ -12,19 +12,24 @@ import java.net.URLConnection;
 import java.nio.file.NotDirectoryException;
 import java.util.List;
 
-public abstract class FileHandler {
+public abstract class FileHandler<Plugin extends IModule> {
 
-    protected final MegaPlugin plugin;
+    public static <Plugin extends IModule> FileHandler<Plugin> instance(Plugin plugin, File directory, String fileName) {
+        return new FileHandler<Plugin>(plugin, directory, fileName) {
+        };
+    }
+
+    protected final Plugin plugin;
     protected final String fileName;
     private final File directory;
     private File file;
     private FileConfiguration config;
 
-    public FileHandler(MegaPlugin plugin, String fileName) {
+    public FileHandler(Plugin plugin, String fileName) {
         this(plugin, plugin.getDataFolder(), fileName);
     }
 
-    public FileHandler(MegaPlugin plugin, File directory, String fileName) {
+    public FileHandler(Plugin plugin, File directory, String fileName) {
         this.plugin = plugin;
         this.fileName = fileName;
         this.directory = directory;
@@ -116,7 +121,7 @@ public abstract class FileHandler {
         if (!file.exists()) {
             URL url = plugin.getClass().getClassLoader().getResource(fileName);
             if (url != null) {
-                plugin.getLogger().info("Attempting to create '" + this.fileName + "' from resources.");
+                plugin.debug("Attempting to create '" + this.fileName + "' from resources.");
                 try {
                     URLConnection connection = url.openConnection();
                     connection.setUseCaches(false);
@@ -132,7 +137,7 @@ public abstract class FileHandler {
                     out.close();
                     in.close();
                 } catch (IOException e) {
-                    ProLib.debug("Failed to create file from resources.");
+                    plugin.debug("Failed to create file from resources.");
                     if (ProLib.debugging()) e.printStackTrace();
                 }
             }

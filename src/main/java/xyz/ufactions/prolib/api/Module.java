@@ -2,76 +2,47 @@ package xyz.ufactions.prolib.api;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
-import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.scheduler.BukkitScheduler;
+import xyz.ufactions.prolib.api.event.ModuleDisableEvent;
+import xyz.ufactions.prolib.api.event.ModuleEnableEvent;
 import xyz.ufactions.prolib.api.exception.ModuleEnabledException;
-import xyz.ufactions.prolib.command.CommandCenter;
 import xyz.ufactions.prolib.command.ICommand;
-import xyz.ufactions.prolib.libs.C;
-import xyz.ufactions.prolib.libs.F;
 import xyz.ufactions.prolib.libs.UtilTime;
 
 import java.io.File;
-import java.util.HashMap;
 
-public abstract class Module implements Listener {
+public abstract class Module implements Listener, IModule {
 
     protected String ModuleName;
     protected MegaPlugin Plugin;
-    protected HashMap<String, ICommand> Commands;
     private boolean enabled = false;
 
     public PluginManager getPluginManager() {
         return this.Plugin.getServer().getPluginManager();
     }
 
-    public BukkitScheduler getScheduler() {
-        return this.Plugin.getServer().getScheduler();
-    }
-
-    public Server getServer() {
-        return this.Plugin.getServer();
-    }
-
-    public MegaPlugin getPlugin() {
-        return this.Plugin;
-    }
-
-    public File getDataFolder() {
-        File file = new File(this.Plugin.getDataFolder(), "/" + this.ModuleName);
-        if (!file.exists()) file.mkdirs();
-        return file;
-    }
-
-    public void registerEvents(Listener listener) {
-        this.Plugin.getServer().getPluginManager().registerEvents(listener, this.Plugin);
-    }
-
-    public void registerSelf() {
-        registerEvents(this);
-    }
-
-    public void deregisterSelf() {
-        HandlerList.unregisterAll(this);
-    }
-
     public final void onEnable(MegaPlugin plugin, String name) throws ModuleEnabledException {
         if (enabled) throw new ModuleEnabledException(this);
         long epoch = System.currentTimeMillis();
         this.ModuleName = name;
+        this.Plugin = plugin;
         log("Initializing...");
-        Plugin = plugin;
-        Commands = new HashMap<>();
         enable();
         this.enabled = true;
+        Bukkit.getPluginManager().callEvent(new ModuleEnableEvent(this));
         log("Enabled in " + UtilTime.convertString(System.currentTimeMillis() - epoch, 1, UtilTime.TimeUnit.FIT) + ".");
     }
 
     public final void onDisable() {
-        deregisterSelf();
-        unregisterCommands();
+        try {
+            Bukkit.getPluginManager().callEvent(new ModuleDisableEvent(this));
+        } catch (Exception e) {
+            warning("Module disable event failed to call. Ensure you are not modifying anything pre-disable.");
+            e.printStackTrace();
+        }
+        unregisterEvents(this);
         disable();
         this.enabled = false;
         log("Disabled.");
@@ -88,33 +59,70 @@ public abstract class Module implements Listener {
     }
 
     public final void addCommand(ICommand command) {
-        CommandCenter.instance.addCommand(Plugin, command);
-        for (String root : command.aliases()) {
-            Commands.put(root, command);
-        }
+        getPlugin().addCommand(command);
     }
 
-    private void unregisterCommands() {
-        for (ICommand command : Commands.values()) {
-            removeCommand(command);
-        }
-        Commands.clear();
-    }
-
+    @Override
     public final void removeCommand(ICommand command) {
-        CommandCenter.instance.removeCommand(command);
+        getPlugin().removeCommand(command);
     }
 
-    public boolean isEnabled() {
+    public final boolean isEnabled() {
         return enabled;
     }
 
-    public void warning(String message) {
-        log(C.mError + message);
+    @Override
+    public final void warning(String message) {
+        getPlugin().warning(getName(), message);
     }
 
-    public void log(String message) {
-        Bukkit.getConsoleSender().sendMessage(F.main(this.ModuleName, message));
+    @Override
+    public final void log(String message) {
+        getPlugin().log(getName(), message);
+    }
+
+    @Override
+    public final void debug(String message) {
+        getPlugin().debug(getName(), message);
+    }
+
+    @Override
+    public BukkitScheduler getScheduler() {
+        return getPlugin().getScheduler();
+    }
+
+    @Override
+    public final void runSyncLater(Runnable runnable, long timer) {
+        this.getPlugin().runSyncLater(runnable, timer);
+    }
+
+    @Override
+    public final void registerEvents(Listener listener) {
+        this.getPlugin().registerEvents(listener);
+    }
+
+    @Override
+    public final void unregisterEvents(Listener listener) {
+        this.getPlugin().unregisterEvents(listener);
+    }
+
+    @Override
+    public final MegaPlugin getPlugin() {
+        return Plugin;
+    }
+
+    @Override
+    public final Server getServer() {
+        return getPlugin().getServer();
+    }
+
+    @Override
+    public final File getDataFolder() {
+        File file = new File(this.Plugin.getDataFolder(), "/" + this.ModuleName);
+        if (file.mkdirs()) {
+            log("Created module directory");
+        }
+        return file;
     }
 
     public void runAsync(Runnable runnable) {
@@ -123,9 +131,5 @@ public abstract class Module implements Listener {
 
     public void runSync(Runnable runnable) {
         this.Plugin.getServer().getScheduler().runTask(this.Plugin, runnable);
-    }
-
-    public void runSyncLater(Runnable runnable, long delay) {
-        this.Plugin.getServer().getScheduler().runTaskLater(this.Plugin, runnable, delay);
     }
 }

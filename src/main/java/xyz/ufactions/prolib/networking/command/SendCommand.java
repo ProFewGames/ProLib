@@ -21,19 +21,19 @@ public class SendCommand extends CommandBase<NetworkModule> {
     @Override
     protected void execute(CommandSender sender, String[] args) {
         if (args.length == 2) {
-            if (Plugin.isTransferring(args[0])) {
-                sender.sendMessage(F.error(Plugin.getName(), "This player is already transferring!"));
+            if (plugin.isTransferring(args[0])) {
+                sender.sendMessage(F.error(plugin.getName(), "This player is already transferring!"));
                 return;
             }
             UtilPlayer.searchNetwork(list -> {
                 if (list.size() == 1) {
                     PlayerStatus status = list.get(0);
                     String name = args[1];
-                    if (Plugin.getServer(name) != null) {
-                        name = Plugin.getServer(name).getName();
+                    if (plugin.getServer(name) != null) {
+                        name = plugin.getServer(name).getName();
                     }
-                    sender.sendMessage(F.main(Plugin.getName(), "Sending transfer request for " + F.elem(status.getName()) + " to " + F.elem(name) + "..."));
-                    Plugin.transfer(status.getName(), name);
+                    sender.sendMessage(F.main(plugin.getName(), "Sending transfer request for " + F.elem(status.getName()) + " to " + F.elem(name) + "..."));
+                    plugin.transfer(status.getName(), name);
                 }
             }, sender, args[0], true);
             return;
@@ -47,7 +47,7 @@ public class SendCommand extends CommandBase<NetworkModule> {
             return getNetworkMatches(args[0]);
         }
         if (args.length == 2) {
-            return getMatches(args[1], Arrays.asList(Plugin.getServerNames().toArray(new String[0])));
+            return getMatches(args[1], Arrays.asList(plugin.getServerNames().toArray(new String[0])));
         }
         return Collections.emptyList();
     }

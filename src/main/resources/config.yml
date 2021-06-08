@@ -15,15 +15,18 @@ fallback-server: lobby
 # The name of this server. * Must not include any special characters or spaces
 server-name: Unknown-Server
 
+
+
 # This is the auto-updating feature of ProLib. This is handy for network use.
 # Enable: Should the updater be enabled?
-# Secure Jar: Should the updater check the jar before downloading it? This is
-#    Handy for preventing malware installation
 # URL: This is the URL the auto-updater will try to retrieve the information from.
+# username: If the URL is password protected this will be the login information used.
+# password: If the URL is password protected this will be the login information used.
 auto-updater:
   enabled: false
-  secure-jar: true
   url: https://yourdomain.com/prolib.jar
+  username: ''
+  password: ''
 
 formatting:
   primary: 'DARK_PURPLE'

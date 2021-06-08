@@ -43,7 +43,7 @@ public class ServerStatusManager {
         System.out.println("<Server> ServerStatusManager has connected via redis.");
 
         this.startupDate = System.currentTimeMillis();
-        this.name = ProLibConfig.getInstance().serverName();
+        this.name = ProLibConfig.getInstance().getServerName();
         this.repository = Utility.getServerRepository();
         this.publicIP = getPublicIP();
 
@@ -67,7 +67,7 @@ public class ServerStatusManager {
     }
 
     public void saveServerStatus(UpdateEvent e) {
-        if (e.getType() != UpdateType.SEC) return;
+        if (e.getType() != UpdateType.SLOW) return;
 
         saveServerStatus();
     }
@@ -76,7 +76,7 @@ public class ServerStatusManager {
         new BukkitRunnable() {
             @Override
             public void run() {
-                repository.updateServerStatus(generateServerSnapshot(), 2147483647);
+                repository.updateServerStatus(generateServerSnapshot(), 10);
             }
         }.runTaskAsynchronously(plugin);
     }

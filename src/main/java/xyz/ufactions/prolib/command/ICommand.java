@@ -5,9 +5,8 @@ import org.bukkit.command.TabCompleter;
 
 import java.util.Collection;
 
+@Deprecated
 public interface ICommand extends CommandExecutor, TabCompleter {
-
-    void setCommandCenter(CommandCenter commandCenter);
 
     Collection<String> aliases();
 

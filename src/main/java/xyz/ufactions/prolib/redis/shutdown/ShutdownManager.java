@@ -26,7 +26,7 @@ public class ShutdownManager {
     }
 
     private final JavaPlugin plugin;
-    private final String server = ProLibConfig.getInstance().serverName();
+    private final String server = ProLibConfig.getInstance().getServerName();
 
     private final HashMap<UUID, ShutdownCallback> shutdowns = new HashMap<>(); // Resource Handling?
 

@@ -1,0 +1,12 @@
+servers:
+  factions:
+    slot: 13
+    server: Factions
+    material: DIAMOND_SWORD
+    data: 0
+    amount: 1
+    glow: true
+    name: '&3&lFactions'
+    enchantments: [ ]
+    lore:
+      - 'Click Me'

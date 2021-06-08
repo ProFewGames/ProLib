@@ -2,22 +2,33 @@ package xyz.ufactions.prolib.script;
 
 import org.bukkit.entity.Player;
 import xyz.ufactions.prolib.ProLib;
-import xyz.ufactions.prolib.api.Module;
+import xyz.ufactions.prolib.api.MegaPlugin;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ScriptManager extends Module {
+public final class ScriptManager {
 
-    private Map<String, Script> scripts;
-    private Pattern pattern;
+    private static ScriptManager instance;
 
-    @Override
-    public void enable() {
+    public static ScriptManager getInstance() {
+        return instance;
+    }
+
+    public static void initialize(MegaPlugin plugin) {
+        if (instance == null) instance = new ScriptManager(plugin);
+    }
+
+    private final Map<String, Script> scripts;
+    private final Pattern pattern;
+    private final MegaPlugin plugin;
+
+    private ScriptManager(MegaPlugin plugin) {
+        this.plugin = plugin;
         this.scripts = new HashMap<>();
-        this.pattern = Pattern.compile("(?<=\\<)(.*?)(?=\\>)");
+        this.pattern = Pattern.compile("(?<=<)(.*?)(?=>)");
 
         new InternalScripts(this).registerAll();
     }
@@ -44,11 +55,11 @@ public class ScriptManager extends Module {
 
     public boolean registerScript(String identifier, Script script) {
         if (isScriptRegistered(identifier)) {
-            ProLib.debug(getName(), "Attempted to register '" + identifier + "' but failed because it is already registered.");
+            plugin.debug("SCRIPT", "Attempted to register '" + identifier + "' but failed because it is already registered.");
             return false;
         }
         scripts.put(identifier, script);
-        ProLib.debug(getName(), "Registered '" + identifier + "'");
+        plugin.debug("SCRIPT", "Registered '" + identifier + "'");
         return true;
     }
 
@@ -56,7 +67,7 @@ public class ScriptManager extends Module {
         for (String s : scripts.keySet()) {
             if (s.equalsIgnoreCase(identifier)) {
                 scripts.remove(s);
-                ProLib.debug(getName() + "Unregistered '" + identifier + "'");
+                plugin.debug("SCRIPT", "Unregistered '" + identifier + "'.");
                 return true;
             }
         }
@@ -68,5 +79,9 @@ public class ScriptManager extends Module {
             if (s.equalsIgnoreCase(identifier))
                 return true;
         return false;
+    }
+
+    protected MegaPlugin getPlugin() {
+        return plugin;
     }
 }

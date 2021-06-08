@@ -11,6 +11,7 @@ import org.bukkit.event.inventory.ClickType;
 import xyz.ufactions.prolib.cg.CustomGUI;
 import xyz.ufactions.prolib.command.CommandBase;
 import xyz.ufactions.prolib.gui.GUI;
+import xyz.ufactions.prolib.gui.GUIBuilder;
 import xyz.ufactions.prolib.gui.button.Button;
 import xyz.ufactions.prolib.libs.FileHandler;
 import xyz.ufactions.prolib.libs.ItemBuilder;
@@ -51,9 +52,7 @@ public class GUIFileHandler {
                 filler = GUI.GUIFiller.PANE;
             }
 
-            GUI<CustomGUI> gui = new GUI<CustomGUI>(plugin, name, slots, filler) {
-            };
-            gui.setPaneColor(color);
+            GUI<CustomGUI> gui = GUIBuilder.instance(plugin, name, filler).size(slots).color(color).build();
 
             for (String key : config.getConfigurationSection("buttons").getKeys(false)) {
                 ItemBuilder builder = ItemBuilder.itemFromConfig(config, "buttons." + key);
@@ -65,11 +64,8 @@ public class GUIFileHandler {
 
                     @Override
                     public void onClick(Player player, ClickType type) {
-                        ScriptManager scriptManager = plugin.getPlugin().getModule(ScriptManager.class);
                         for (String action : actions) {
-                            if (scriptManager != null && scriptManager.isEnabled()) {
-                                action = scriptManager.replace(player, action);
-                            }
+                            ScriptManager.getInstance().replace(player, action);
                             if (action.isEmpty()) continue;
                             action = action.replaceAll("%player%", player.getName());
                             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), action);

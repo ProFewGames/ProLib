@@ -5,8 +5,8 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import xyz.ufactions.prolib.ProLib;
-import xyz.ufactions.prolib.api.Module;
+import org.bukkit.permissions.PermissionDefault;
+import xyz.ufactions.prolib.api.IModule;
 import xyz.ufactions.prolib.libs.F;
 import xyz.ufactions.prolib.libs.UtilServer;
 import xyz.ufactions.prolib.recharge.Recharge;
@@ -19,21 +19,22 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-public abstract class CommandBase<PluginType extends Module>
+@Deprecated
+public abstract class CommandBase<PluginType extends IModule>
         implements ICommand {
 
     private final List<String> aliases;
-    private final List<CommandSubBase<PluginType>> subCommands;
 
     protected String description = "A MegaPlugin provided command.";
+    @Deprecated
     protected PluginType Plugin;
+    protected PluginType plugin;
     protected String AliasUsed;
     protected String permission;
-    protected CommandCenter CommandCenter;
 
     public CommandBase(PluginType plugin, String... aliases) {
         this.Plugin = plugin;
-        this.subCommands = new ArrayList<>();
+        this.plugin = plugin;
         this.aliases = Arrays.asList(aliases);
     }
 
@@ -42,16 +43,6 @@ public abstract class CommandBase<PluginType extends Module>
         setAliasUsed(label);
         if (permission != null && !permission.isEmpty())
             if (!permissionCheck(sender, permission)) return true;
-        if (args.length == 1) {
-            for (CommandSubBase<PluginType> command : subCommands) {
-                for (String alias : command.aliases()) {
-                    if (alias.equalsIgnoreCase(args[0])) {
-                        command.onCommand(sender, cmd, label, args);
-                        return true;
-                    }
-                }
-            }
-        }
         execute(sender, args);
         return true;
     }
@@ -122,11 +113,16 @@ public abstract class CommandBase<PluginType extends Module>
         return true;
     }
 
+    protected boolean permissionCheck(CommandSender sender, boolean inform) {
+        return permissionCheck(sender, permission, inform);
+    }
+
     protected boolean permissionCheck(CommandSender sender, String permission) {
         return permissionCheck(sender, permission, true);
     }
 
     protected boolean permissionCheck(CommandSender sender, String permission, boolean inform) {
+        if (permission == null) return true;
         if (!sender.hasPermission(permission)) {
             if (inform) {
                 sender.sendMessage(F.noPermission());
@@ -137,10 +133,6 @@ public abstract class CommandBase<PluginType extends Module>
     }
 
     protected abstract void execute(CommandSender sender, String[] args);
-
-    public final void registerSubCommand(CommandSubBase<PluginType> commandSubBase) {
-        this.subCommands.add(commandSubBase);
-    }
 
     public Collection<String> aliases() {
         return this.aliases;
@@ -156,17 +148,17 @@ public abstract class CommandBase<PluginType extends Module>
     }
 
     public void setPermission(String permission) {
+        setPermission(permission, PermissionDefault.OP);
+    }
+
+    public void setPermission(String permission, PermissionDefault permissionDefault) {
         this.permission = permission;
 
-        ProLib.debug("Registered permission: " + permission);
+        Plugin.debug("Registered permission : " + permission);
     }
 
     public void setAliasUsed(String aliasUsed) {
         this.AliasUsed = aliasUsed;
-    }
-
-    public void setCommandCenter(CommandCenter commandCenter) {
-        this.CommandCenter = commandCenter;
     }
 
     protected void resetCommandCharge(Player caller) {

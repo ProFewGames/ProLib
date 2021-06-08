@@ -4,11 +4,12 @@ import org.apache.commons.lang.Validate;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
+import xyz.ufactions.prolib.api.IModule;
 import xyz.ufactions.prolib.api.Module;
 import xyz.ufactions.prolib.gui.GUI;
 import xyz.ufactions.prolib.libs.ItemBuilder;
 
-public abstract class Button<T extends Module> {
+public abstract class Button<T extends IModule> {
 
     private final int slot;
 
@@ -17,10 +18,9 @@ public abstract class Button<T extends Module> {
     private long lastUpdated = System.currentTimeMillis();
 
     protected final T plugin;
-    protected final ItemBuilder builder;
+    protected final ItemStack item;
 
     protected GUI<?> gui;
-
 
     public Button(T plugin) {
         this(plugin, null);
@@ -36,7 +36,7 @@ public abstract class Button<T extends Module> {
 
     public Button(T plugin, ItemBuilder builder, long refreshTime, int slot) {
         this.plugin = plugin;
-        this.builder = builder;
+        this.item = builder.build();
         this.refreshTime = refreshTime;
         this.slot = slot;
     }
@@ -68,9 +68,9 @@ public abstract class Button<T extends Module> {
     }
 
     public ItemStack getItem() {
-        Validate.notNull(builder, "ItemBuilder is null. Override getItem within button class or set a builder" +
+        Validate.notNull(item, "ItemBuilder is null. Override getItem within button class or set a builder" +
                 " when constructing this button class.");
 
-        return builder.build();
+        return item;
     }
 }

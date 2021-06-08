@@ -3,10 +3,10 @@ package xyz.ufactions.prolib.script;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Server;
-import xyz.ufactions.prolib.ProLib;
 import xyz.ufactions.prolib.libs.C;
+import xyz.ufactions.prolib.libs.ColorLib;
 
-public class InternalScripts {
+class InternalScripts {
 
     private final ScriptManager scriptManager;
 
@@ -15,10 +15,11 @@ public class InternalScripts {
     }
 
     protected void registerAll() {
-        ProLib.debug(scriptManager.getName(), "Attempting to register all scripts.");
+        scriptManager.getPlugin().debug("SCRIPT", "Attempting to register all scripts.");
         registerColors();
         registerPlayer();
-        ProLib.debug(scriptManager.getName(), "All scripts registered.");
+        registerServer();
+        scriptManager.getPlugin().debug("SCRIPT", "All scripts registered");
     }
 
     protected void registerColors() {
@@ -29,6 +30,7 @@ public class InternalScripts {
         scriptManager.registerScript("mBody", (player, script) -> C.mBody);
         scriptManager.registerScript("mError", (player, script) -> C.mError);
         scriptManager.registerScript("mElem", (player, script) -> C.mElem);
+        scriptManager.registerScript("random_color", (player, script) -> String.valueOf(ColorLib.randomColor()));
     }
 
     protected void registerPlayer() {
@@ -36,6 +38,7 @@ public class InternalScripts {
         scriptManager.registerScript("name", (player, script) -> player.getName());
         scriptManager.registerScript("displayname", (player, script) -> player.getDisplayName());
         scriptManager.registerScript("gamemode", (player, script) -> player.getGameMode().name());
+        scriptManager.registerScript("join_count", (player, script) -> String.valueOf(Bukkit.getOfflinePlayers().length));
     }
 
     protected void registerServer() {

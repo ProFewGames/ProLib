@@ -17,11 +17,7 @@ public class CustomGUI extends Module {
 
     @Override
     public void enable() {
-        this.scriptManager = getPlugin().getModule(ScriptManager.class);
-        if (scriptManager == null || !scriptManager.isEnabled()) {
-            warning("\"ScriptManager.class\" must be loaded before CustomGUI.class");
-            onDisable();
-        }
+        this.scriptManager = ScriptManager.getInstance();
         reload();
     }
 
@@ -34,13 +30,9 @@ public class CustomGUI extends Module {
         }
         this.guis = guiFileHandler.getGUIs(this.guis == null);
         for (Map.Entry<String, GUI<?>> entry : guis.entrySet()) {
-            scriptManager.registerScript("open gui=\"" + entry.getKey() + "\"", new Script() {
-
-                @Override
-                public String execute(Player player, String script) {
-                    entry.getValue().openInventory(player);
-                    return "";
-                }
+            scriptManager.registerScript("open gui=\"" + entry.getKey() + "\"", (player, script) -> {
+                entry.getValue().openInventory(player);
+                return "";
             });
         }
     }

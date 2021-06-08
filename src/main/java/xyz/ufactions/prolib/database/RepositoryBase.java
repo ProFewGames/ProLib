@@ -40,7 +40,8 @@ public abstract class RepositoryBase implements Listener {
 
     protected abstract void initialize();
 
-    protected abstract void update();
+    protected void update() {
+    }
 
     /**
      * @return the {@link DataSource} used by the repository for connection pooling.

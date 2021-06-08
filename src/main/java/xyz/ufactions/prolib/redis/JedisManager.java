@@ -34,7 +34,7 @@ public class JedisManager {
     private JedisManager() {
         pool = Utility.getJedisPool();
         this.commandTypes = new HashMap<>();
-        initializeServer(ProLibConfig.getInstance().serverName());
+        initializeServer(ProLibConfig.getInstance().getServerName());
         initialize();
         System.out.println("<Jedis> JedisManager initialized");
     }

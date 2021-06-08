@@ -3,8 +3,6 @@ package xyz.ufactions.prolib;
 import com.google.common.base.Charsets;
 import org.bukkit.configuration.file.YamlConfiguration;
 import xyz.ufactions.prolib.api.MegaPlugin;
-import xyz.ufactions.prolib.api.exception.MegaException;
-import xyz.ufactions.prolib.autoupdate.ProUpdater;
 import xyz.ufactions.prolib.cg.CustomGUI;
 import xyz.ufactions.prolib.command.CommandCenter;
 import xyz.ufactions.prolib.database.DBPool;
@@ -12,6 +10,8 @@ import xyz.ufactions.prolib.file.ProLibConfig;
 import xyz.ufactions.prolib.libs.UtilServer;
 import xyz.ufactions.prolib.monitor.LagMeter;
 import xyz.ufactions.prolib.networking.NetworkModule;
+import xyz.ufactions.prolib.npc.NPCModule;
+import xyz.ufactions.prolib.pluginupdater.ProUpdater;
 import xyz.ufactions.prolib.recharge.Recharge;
 import xyz.ufactions.prolib.redis.JedisManager;
 import xyz.ufactions.prolib.redis.Utility;
@@ -22,9 +22,9 @@ import xyz.ufactions.prolib.redis.status.ServerStatusManager;
 import xyz.ufactions.prolib.script.ScriptManager;
 import xyz.ufactions.prolib.updater.Updater;
 import xyz.ufactions.prolib.updater.exception.UpdaterInitializationException;
+import xyz.ufactions.prolib.visibility.VisibilityManager;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Objects;
 
@@ -33,13 +33,17 @@ public class ProLib extends MegaPlugin {
     @Override
     public void enable() {
         ProLibConfig.initialize(this);
-        if (ProLibConfig.getInstance().autoUpdaterEnabled()) {
+        CommandCenter.initialize(this);
+        Recharge.Initialize(this);
+        LagMeter.initialize();
+        VisibilityManager.initialize(this);
+        ScriptManager.initialize(this);
+        if (ProLibConfig.getInstance().isAutoUpdaterEnabled()) {
             log("Starting plugin updater...");
             try {
-                ProUpdater updater = new ProUpdater(this, this.getFile(),
-                        ProLibConfig.getInstance().autoUpdaterURL(), ProLibConfig.getInstance().autoUpdaterSecureJar());
+                ProUpdater updater = new ProUpdater(this, ProLibConfig.getInstance().getAutoUpdaterURL(), ProLibConfig.getInstance().getAutoUpdaterAuthentication());
                 updater.scheduleUpdater();
-            } catch (MegaException | IOException e) {
+            } catch (Exception e) {
                 log("Failed to start plugin updater!");
                 if (debugging())
                     e.printStackTrace();
@@ -52,6 +56,11 @@ public class ProLib extends MegaPlugin {
         } else {
             log("MySQL Unsupported");
         }
+        if (Utility.allowRedis()) {
+            log("Redis Supported");
+        } else {
+            log("Redis Unsupported");
+        }
         generateSettings();
         log("Initializing Mechanics");
         try {
@@ -61,10 +70,7 @@ public class ProLib extends MegaPlugin {
             if (debugging())
                 e.printStackTrace();
         }
-        Recharge.Initialize(this);
-        LagMeter.initialize();
-        CommandCenter.initialize(this);
-        addModule("Script Manager", ScriptManager.class);
+        addModule("NPCs", NPCModule.class);
         if (Utility.allowRedis()) {
             log("Networking found, enabling managers.");
             ServerStatusManager.initialize(this);
@@ -76,7 +82,7 @@ public class ProLib extends MegaPlugin {
             }
             addModule("Networking", NetworkModule.class);
         }
-        if (ProLibConfig.getInstance().customGUI()) {
+        if (ProLibConfig.getInstance().isCustomGUIsEnabled()) {
             addModule("GUI Customizer", CustomGUI.class);
         }
         log("Initialized Server Logistics/Mechanics");
@@ -89,7 +95,8 @@ public class ProLib extends MegaPlugin {
             if (plugin == this) continue;
             plugin.onDisable(); // Library Logic
         }
-        JedisManager.getInstance().unsubscribe();
+        if (Utility.allowRedis())
+            JedisManager.getInstance().unsubscribe();
         log("Goodbye");
     }
 
@@ -110,14 +117,6 @@ public class ProLib extends MegaPlugin {
     }
 
     public static boolean debugging() {
-        return ProLibConfig.getInstance().debugging();
-    }
-
-    public static void debug(String message) {
-        debug("Unknown", message);
-    }
-
-    public static void debug(String module, String message) {
-        if (debugging()) System.out.println("[ProLib] [Debug] [" + module + "] " + message);
+        return ProLibConfig.getInstance().isDebuggingEnabled();
     }
 }

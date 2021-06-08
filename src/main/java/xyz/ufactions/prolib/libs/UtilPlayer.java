@@ -246,7 +246,7 @@ public class UtilPlayer {
 
     public static void searchNetwork(final Callback<List<PlayerStatus>> callback, final CommandSender sender, final String target, final boolean inform) {
         if (!Utility.allowRedis()) {
-            callback.run(new ArrayList<>());
+            callback.run(Collections.emptyList());
             return;
         }
         List<PlayerStatus> players = RedisPlayerManager.getInstance().getPlayers(target);
@@ -264,28 +264,29 @@ public class UtilPlayer {
         callback.run(players);
     }
 
-    public static void searchOffline(final Callback<List<OfflinePlayer>> callback, final CommandSender caller, final String player, final boolean inform) {
+    public static void searchOffline(final Callback<List<OfflinePlayer>> callback, final CommandSender caller, final String target, final boolean inform) {
         List<OfflinePlayer> list = new ArrayList<>();
         for (OfflinePlayer pls : Bukkit.getOfflinePlayers()) {
-            if (pls.getName().equalsIgnoreCase(player)) {
-                callback.run(Arrays.asList(pls));
+            if (pls.getName() == null) continue;
+            if (pls.getName().equalsIgnoreCase(target)) {
+                callback.run(Collections.singletonList(pls));
                 return;
             }
-            if (pls.getName().toLowerCase().contains(player.toLowerCase())) {
+            if (pls.getName().toLowerCase().contains(target.toLowerCase())) {
                 list.add(pls);
             }
         }
         callback.run(list); // XXX Possibly move down code tension between code?
         if (list.size() != 1) {
             if (!inform) return;
-            message(caller, F.main("Search", F.elem(String.valueOf(list.size())) + " matches for [" + F.elem(player) + "]."));
+            message(caller, F.main("Offline Player Search", F.elem(String.valueOf(list.size())) + " matches for [" + F.elem(target) + "]."));
             if (list.size() > 0) {
-                String matchString = "";
+                StringBuilder matchString = new StringBuilder();
                 for (OfflinePlayer pls : list) {
                     String cur = pls.getName();
-                    matchString += cur + " ";
+                    matchString.append(cur).append(" ");
                     if (matchString.length() > 1)
-                        matchString = matchString.substring(0, matchString.length() - 1);
+                        matchString = new StringBuilder(matchString.substring(0, matchString.length() - 1));
                     message(caller,
                             F.main("Offline Player Search", "" + C.mBody + "Matches [" + C.mElem + matchString + C.mBody + "]."));
                 }

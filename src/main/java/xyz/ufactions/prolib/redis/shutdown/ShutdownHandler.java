@@ -10,7 +10,7 @@ import xyz.ufactions.prolib.redis.connect.RedisTransferManager;
 
 public class ShutdownHandler implements CommandCallback {
 
-    private final String server = ProLibConfig.getInstance().serverName();
+    private final String server = ProLibConfig.getInstance().getServerName();
 
     private final ShutdownManager manager;
 
@@ -24,7 +24,7 @@ public class ShutdownHandler implements CommandCallback {
             if (shutdownCommand.getTargetServer().equalsIgnoreCase(this.server)) {
                 final int players = Bukkit.getOnlinePlayers().size();
                 for (Player player : Bukkit.getOnlinePlayers())
-                    RedisTransferManager.getInstance().transfer(player.getName(), ProLibConfig.getInstance().fallbackServer()); // send * to fallback
+                    RedisTransferManager.getInstance().transfer(player.getName(), ProLibConfig.getInstance().getFallbackServer()); // send * to fallback
                 new BukkitRunnable() {
 
                     @Override

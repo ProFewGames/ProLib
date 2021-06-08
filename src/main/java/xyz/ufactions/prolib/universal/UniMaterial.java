@@ -8,15 +8,20 @@ public enum UniMaterial {
     CLOCK("WATCH", "CLOCK"),
     REDSTONE_TORCH("REDSTONE_TORCH", "REDSTONE_TORCH_ON");
 
-    private final String LegacyName;
-    private final String LatestName;
+    private final Material material;
 
-    UniMaterial(String legacyName, String latestName) {
-        LegacyName = legacyName;
-        LatestName = latestName;
+    UniMaterial(String... viableNames) {
+        Material m = Material.AIR;
+        for (String name : viableNames) {
+            try {
+                m = Material.valueOf(name);
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+        this.material = m;
     }
 
     public final Material get() {
-        return Material.getMaterial(Universal.getInstance().isLegacyMaterialNames() ? LegacyName : LatestName);
+        return material;
     }
 }

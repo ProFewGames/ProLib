@@ -1,16 +1,18 @@
 package xyz.ufactions.prolib.file;
 
-import org.apache.commons.lang.Validate;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import xyz.ufactions.prolib.ProLib;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import xyz.ufactions.prolib.api.MegaPlugin;
-import xyz.ufactions.prolib.libs.F;
-import xyz.ufactions.prolib.libs.FileHandler;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.*;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
+import java.net.URL;
+import java.net.URLConnection;
 
-public class ProLibConfig extends FileHandler {
+public class ProLibConfig {
 
     private static ProLibConfig instance;
 
@@ -22,74 +24,97 @@ public class ProLibConfig extends FileHandler {
         if (instance == null) instance = new ProLibConfig(plugin);
     }
 
-    public enum ProLibConfigColor {
-        PRIMARY("formatting.primary"),
-        SECONDARY("formatting.secondary"),
-        ELEMENTAL("formatting.elemental"),
-        ERROR("formatting.error");
-
-        private final String path;
-
-        ProLibConfigColor(String path) {
-            this.path = path;
-        }
-    }
-
-    private Map<ProLibConfigColor, ChatColor> map = new HashMap<>();
+    private final FileConfiguration configuration;
 
     private ProLibConfig(MegaPlugin plugin) {
-        super(plugin, plugin.getDataFolder(), "config.yml");
-    }
+        plugin.getDataFolder().mkdir();
+        File file = new File(plugin.getDataFolder(), "config.yml");
+        if (!file.exists()) {
+            URL url = plugin.getClass().getClassLoader().getResource("config.yml");
+            if (url != null) {
+                try {
+                    URLConnection connection = url.openConnection();
+                    connection.setUseCaches(false);
+                    InputStream in = connection.getInputStream();
 
-    public boolean autoUpdaterEnabled() {
-        return getBoolean("auto-updater.enabled", true);
-    }
+                    OutputStream out = new FileOutputStream(file);
+                    byte[] buf = new byte[1024];
 
-    public boolean autoUpdaterSecureJar() {
-        return getBoolean("auto-updater.secure-jar", true);
-    }
-
-    public String autoUpdaterURL() {
-        return getString("auto-updater.url");
-    }
-
-    public String serverName() {
-        return getString("server-name", "Unknown-Server");
-    }
-
-    public String fallbackServer() {
-        return getString("fallback-server");
-    }
-
-    public boolean debugging() {
-        return getBoolean("debugging", false);
-    }
-
-    public boolean customGUI() {
-        return getBoolean("custom-gui", false);
-    }
-
-    public ChatColor getColor(ProLibConfigColor path) {
-        Validate.notNull(path);
-
-        if (!map.containsKey(path)) {
-            ChatColor color;
-            try {
-                color = ChatColor.valueOf(getString(path.path).toUpperCase());
-            } catch (Exception e) {
-                color = ChatColor.WHITE;
-                if (ProLib.debugging()) {
-                    plugin.warning("Failed to fetch color from config for " + F.capitalizeFirstLetter(path.name()));
+                    int len;
+                    while ((len = in.read(buf)) > 0) {
+                        out.write(buf, 0, len);
+                    }
+                    out.close();
+                    in.close();
+                } catch (IOException e) {
+                    Bukkit.getLogger().severe("[ProLib] Failed to create file from resources.");
                     e.printStackTrace();
                 }
+            } else {
+                Bukkit.getLogger().warning("[ProLib] Configuration resource does not exist");
             }
-            map.put(path, color);
         }
-        return map.get(path);
+        this.configuration = YamlConfiguration.loadConfiguration(file);
     }
 
-    @Override
-    protected void onReload() {
-        map = new HashMap<>();
+    public boolean isDebuggingEnabled() {
+        return configuration.getBoolean("debugging", false);
+    }
+
+    public String getFallbackServer() {
+        return configuration.getString("fallback-server", "lobby");
+    }
+
+    public String getServerName() {
+        return configuration.getString("server-name", "Unknown-Server");
+    }
+
+    public boolean isAutoUpdaterEnabled() {
+        return configuration.getBoolean("auto-updater.enabled", false);
+    }
+
+    public String getAutoUpdaterURL() {
+        return configuration.getString("auto-updater.url", "https://example.com/prolib.jar");
+    }
+
+    public Authenticator getAutoUpdaterAuthentication() {
+        return new Authenticator() {
+
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(configuration.getString("auto-updater.username", ""), configuration.getString("auto-updater.password", "").toCharArray());
+            }
+        };
+    }
+
+    public ChatColor getPrimaryColor() {
+        return getColor("formatting.primary");
+    }
+
+    public ChatColor getSecondaryColor() {
+        return getColor("formatting.secondary");
+    }
+
+    public ChatColor getElementalColor() {
+        return getColor("formatting.elemental");
+    }
+
+    public ChatColor getErrorColor() {
+        return getColor("formatting.error");
+    }
+
+    public boolean isCustomGUIsEnabled() {
+        return configuration.getBoolean("custom-gui", false);
+    }
+
+    private ChatColor getColor(String path) {
+        ChatColor color;
+        try {
+            color = ChatColor.valueOf(configuration.getString(path, "WHITE"));
+        } catch (EnumConstantNotPresentException e) {
+            Bukkit.getLogger().warning("[ProLib] Failed to load color from configuration");
+            color = ChatColor.WHITE;
+        }
+        return color;
     }
 }

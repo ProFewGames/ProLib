@@ -3,8 +3,10 @@ package xyz.ufactions.prolib.libs;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import xyz.ufactions.prolib.reflection.ReflectionUtils;
+import xyz.ufactions.prolib.version.VersionUtils;
 
-// TODO Add multiversion support
+import java.lang.reflect.Field;
+
 public class TitleAPI {
 
     private static TitleAPI instance;
@@ -16,6 +18,7 @@ public class TitleAPI {
 
     private final Object[] TitleActions;
 
+    private final ReflectionUtils.RefClass PacketPlayOutPlayerListHeaderFooter;
     private final ReflectionUtils.RefClass PacketPlayOutTitle;
     private final ReflectionUtils.RefClass EnumTitleAction;
     private final ReflectionUtils.RefClass IChatBaseComponent;
@@ -26,6 +29,7 @@ public class TitleAPI {
         EnumTitleAction = ReflectionUtils.getRefClass("{nms}.PacketPlayOutTitle$EnumTitleAction");
         IChatBaseComponent = ReflectionUtils.getRefClass("{nms}.IChatBaseComponent");
         ChatMessage = ReflectionUtils.getRefClass("{nms}.ChatMessage");
+        PacketPlayOutPlayerListHeaderFooter = ReflectionUtils.getRefClass("{nms}.PacketPlayOutPlayerListHeaderFooter");
 
         this.TitleActions = this.EnumTitleAction.getRealClass().getEnumConstants();
     }
@@ -65,7 +69,21 @@ public class TitleAPI {
     }
 
     public void sendTabHF(Player player, String header, String footer) {
-        player.setPlayerListHeaderFooter(header, footer);
+        if (VersionUtils.getVersion().greaterOrEquals(VersionUtils.Version.V1_9)) {
+            player.setPlayerListHeaderFooter(header, footer);
+        } else {
+            Object packet = this.PacketPlayOutPlayerListHeaderFooter.getConstructor(this.IChatBaseComponent).create(createChatMessage(header));
+
+            try {
+                Field field = this.PacketPlayOutPlayerListHeaderFooter.getRealClass().getDeclaredField("b");
+                field.setAccessible(true);
+                field.set(packet, createChatMessage(footer));
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
+
+            UtilPlayer.sendPacket(player, packet);
+        }
     }
 
     public void sendActionBar(String message, int stay) {
@@ -81,5 +99,9 @@ public class TitleAPI {
 
     private void setTimings(Player player, int fadeIn, int stay, int fadeOut) {
         player.sendMessage("Unimplemented:TitleAPI$setTimings");
+    }
+
+    private Object createChatMessage(String string) {
+        return this.ChatMessage.getConstructor(String.class, Object[].class).create(string, new Object[0]);
     }
 }

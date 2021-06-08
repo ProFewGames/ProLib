@@ -11,6 +11,8 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import xyz.ufactions.prolib.script.ScriptManager;
+import xyz.ufactions.prolib.version.VersionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +63,10 @@ public class ItemBuilder {
      * @param owner The person who's skull we're creating
      */
     public ItemBuilder(OfflinePlayer owner) {
-        this.item = new ItemStack(Material.PLAYER_HEAD);
+        if (VersionUtils.getVersion().greaterOrEquals(VersionUtils.Version.V1_9))
+            this.item = new ItemStack(Material.PLAYER_HEAD);
+        else
+            this.item = new ItemStack(Material.getMaterial("SKULL_ITEM"));
         SkullMeta meta = (SkullMeta) item.getItemMeta();
         meta.setOwningPlayer(owner);
         item.setItemMeta(meta);
@@ -109,7 +114,7 @@ public class ItemBuilder {
         ItemMeta meta = this.item.getItemMeta();
         List<String> finLore = new ArrayList<String>();
         for (String line : lore) {
-            finLore.add(cc("&7" + line));
+            finLore.add(cc("&7" + ScriptManager.getInstance().replace(line)));
         }
         meta.setLore(finLore);
         this.item.setItemMeta(meta);
@@ -153,7 +158,8 @@ public class ItemBuilder {
 
     public static ItemBuilder itemFromConfig(FileConfiguration config, String path) {
         Material material = Material.getMaterial(config.getString(path + ".material"));
-        if (material == null) return null;
+        if (material == null)
+            return null;
 
         int data = config.getInt(path + ".data", 0);
         int amount = config.getInt(path + ".amount", 0);

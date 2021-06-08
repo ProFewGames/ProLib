@@ -11,7 +11,14 @@ import java.util.Set;
 public class F {
 
     public static String main(String module, String body) {
-        return C.mHead + module + "> " + C.mBody + body;
+        return C.mHead + C.Bold + module + " " + C.mBody + body;
+    }
+
+    public static String line(String middle) {
+        int delta = rawLine().length() - middle.length();
+        if (delta <= 0) return middle;
+        String line = rawLine().substring(0, delta / 2);
+        return C.mHead + C.Strike + line + ChatColor.RESET + C.mBody + middle + C.mHead + C.Strike + line;
     }
 
     public static String line() {
@@ -43,6 +50,7 @@ public class F {
     }
 
     public static String capitalizeFirstLetter(String string) {
+        string = string.replaceAll("_", " ");
         if (string.contains(" ")) {
             StringBuilder toReturn = new StringBuilder();
             String[] array = string.split(" ");
@@ -77,28 +85,6 @@ public class F {
 
     public static String value(String variable, String value) {
         return value(0, variable, value);
-    }
-
-    public static String cd(boolean var) {
-        if (var) return C.listValueOn + "connected" + C.mBody;
-        return C.listValueOff + "disconnected" + C.mBody;
-    }
-
-    public static String yn(boolean var) {
-        if (var) return C.listValueOn + "yes" + C.mBody;
-        return C.listValueOff + "no" + C.mBody;
-    }
-
-    public static String ed(boolean var) {
-        if (var)
-            return C.listValueOn + "enable" + C.mBody;
-        return C.listValueOff + "disabled" + C.mBody;
-    }
-
-    public static String oo(boolean var) {
-        if (var)
-            return C.listValueOn + "on" + C.mBody;
-        return C.listValueOff + "off" + C.mBody;
     }
 
     public static String value(Enum[] numerators) {
@@ -152,6 +138,8 @@ public class F {
         return matches;
     }
 
+    // Concatenation
+
     public static String concatenate(String splitter, List<String> list) {
         return concatenate(splitter, list.toArray(new String[0]));
     }
@@ -179,6 +167,29 @@ public class F {
                 string += splitter + array[i];
         }
         return string;
+    }
+
+    public static <T> String concatenate(List<T> list, String splitter, Operation<T, String> operation) {
+        StringBuilder builder = new StringBuilder();
+        for (T type : list) {
+            if (builder.length() != 0) {
+                builder.append(splitter);
+            }
+            builder.append(operation.execute(type));
+        }
+        return builder.toString();
+    }
+
+    public static <T> List<String> getMatches(List<T> list, int max, Operation<T, String> operation) {
+        List<String> strings = new ArrayList<>();
+        for (int i = 0; i < list.size(); i++) {
+            if (i == max) {
+                strings.add(list(list.size() - i + " more"));
+                break;
+            }
+            strings.add(list(operation.execute(list.get(i))));
+        }
+        return strings;
     }
 
     private static String format(double paramDouble) {
@@ -212,5 +223,34 @@ public class F {
         }
         long l = (long) paramDouble;
         return String.valueOf(l);
+    }
+
+    // Boolean Values
+
+    public static String ar(boolean var) {
+        if (var) return C.listValueOn + "added" + C.mBody;
+        return C.listValueOff + "removed" + C.mBody;
+    }
+
+    public static String cd(boolean var) {
+        if (var) return C.listValueOn + "connected" + C.mBody;
+        return C.listValueOff + "disconnected" + C.mBody;
+    }
+
+    public static String yn(boolean var) {
+        if (var) return C.listValueOn + "yes" + C.mBody;
+        return C.listValueOff + "no" + C.mBody;
+    }
+
+    public static String ed(boolean var) {
+        if (var)
+            return C.listValueOn + "enable" + C.mBody;
+        return C.listValueOff + "disabled" + C.mBody;
+    }
+
+    public static String oo(boolean var) {
+        if (var)
+            return C.listValueOn + "on" + C.mBody;
+        return C.listValueOff + "off" + C.mBody;
     }
 }
