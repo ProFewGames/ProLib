@@ -12,6 +12,7 @@ import java.util.Locale;
 import java.util.Random;
 
 public class UtilMath {
+
     public static boolean isDouble(String string) {
         try {
             Double.parseDouble(string);

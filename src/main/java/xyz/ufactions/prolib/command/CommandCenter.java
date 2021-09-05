@@ -75,14 +75,11 @@ public class CommandCenter {
         String name = null;
         List<String> aliases = new ArrayList<>();
 
-        Iterator<String> iterator = command.getAliases().iterator();
-
-        while (iterator.hasNext()) {
-            if (name == null) {
-                name = iterator.next();
-            } else {
-                aliases.add(iterator.next());
-            }
+        for (String alias : command.getAliases()) {
+            if (name == null)
+                name = alias;
+            else
+                aliases.add(alias);
         }
 
         if (name == null) {

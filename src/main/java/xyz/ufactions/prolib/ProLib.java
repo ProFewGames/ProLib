@@ -70,7 +70,7 @@ public class ProLib extends MegaPlugin {
             if (debugging())
                 e.printStackTrace();
         }
-        addModule("NPCs", NPCModule.class);
+//        addModule("NPCs", NPCModule.class);
         if (Utility.allowRedis()) {
             log("Networking found, enabling managers.");
             ServerStatusManager.initialize(this);

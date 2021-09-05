@@ -9,6 +9,7 @@ import xyz.ufactions.prolib.api.event.ModuleDisableEvent;
 import xyz.ufactions.prolib.api.event.ModuleEnableEvent;
 import xyz.ufactions.prolib.api.exception.ModuleEnabledException;
 import xyz.ufactions.prolib.command.ICommand;
+import xyz.ufactions.prolib.command.api.CommandBase;
 import xyz.ufactions.prolib.libs.UtilTime;
 
 import java.io.File;
@@ -16,6 +17,8 @@ import java.io.File;
 public abstract class Module implements Listener, IModule {
 
     protected String ModuleName;
+    protected MegaPlugin plugin;
+    @Deprecated
     protected MegaPlugin Plugin;
     private boolean enabled = false;
 
@@ -28,9 +31,10 @@ public abstract class Module implements Listener, IModule {
         long epoch = System.currentTimeMillis();
         this.ModuleName = name;
         this.Plugin = plugin;
+        this.plugin = plugin;
         log("Initializing...");
-        enable();
         this.enabled = true;
+        enable();
         Bukkit.getPluginManager().callEvent(new ModuleEnableEvent(this));
         log("Enabled in " + UtilTime.convertString(System.currentTimeMillis() - epoch, 1, UtilTime.TimeUnit.FIT) + ".");
     }
@@ -54,8 +58,14 @@ public abstract class Module implements Listener, IModule {
     public void disable() {
     }
 
+    @Override
     public final String getName() {
         return this.ModuleName;
+    }
+
+    @Override
+    public void addCommand(CommandBase<?> command) {
+        getPlugin().addCommand(command);
     }
 
     public final void addCommand(ICommand command) {

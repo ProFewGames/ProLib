@@ -10,6 +10,7 @@ import xyz.ufactions.prolib.api.exception.ModuleEnabledException;
 import xyz.ufactions.prolib.api.exception.ModuleInitializationException;
 import xyz.ufactions.prolib.command.CommandCenter;
 import xyz.ufactions.prolib.command.ICommand;
+import xyz.ufactions.prolib.command.api.CommandBase;
 import xyz.ufactions.prolib.file.ProLibConfig;
 import xyz.ufactions.prolib.libs.C;
 import xyz.ufactions.prolib.libs.DummyModule;
@@ -121,6 +122,11 @@ public abstract class MegaPlugin extends JavaPlugin implements IModule, Listener
     public final void debug(String prefix, String message) {
         if (ProLibConfig.getInstance().isDebuggingEnabled())
             log(C.mHead + "[DEBUG] " + (prefix == null ? "" : "[" + prefix + "] ") + C.mBody + message);
+    }
+
+    @Override
+    public void addCommand(CommandBase<?> command) {
+        CommandCenter.instance.addCommand(this, command);
     }
 
     @Override

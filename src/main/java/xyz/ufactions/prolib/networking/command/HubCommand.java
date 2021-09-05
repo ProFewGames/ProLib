@@ -1,9 +1,8 @@
 package xyz.ufactions.prolib.networking.command;
 
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import xyz.ufactions.prolib.command.CommandBase;
+import xyz.ufactions.prolib.command.api.CommandBase;
 import xyz.ufactions.prolib.file.ProLibConfig;
 import xyz.ufactions.prolib.libs.F;
 import xyz.ufactions.prolib.libs.UtilPlayer;
@@ -16,22 +15,23 @@ public class HubCommand extends CommandBase<NetworkModule> {
 
     public HubCommand(NetworkModule plugin) {
         super(plugin, "hub", "lobby");
+
+        setDescription("Get transferred to the server's lobby.");
+        requirePlayer();
     }
 
     @Override
-    protected void execute(CommandSender sender, String[] args) {
-        if(isPlayer(sender)) {
-            Player player = (Player) sender;
-            if(plugin.isTransferring(player.getName())) {
-                UtilPlayer.message(player, F.error(plugin.getName(), "You are already transferring!"));
-                return;
-            }
-            plugin.transfer(player.getName(), ProLibConfig.getInstance().getFallbackServer());
+    protected boolean execute(Player player, String label, String[] args) {
+        if (plugin.isTransferring(player.getName())) {
+            UtilPlayer.message(player, F.error(plugin.getName(), "You are already transferring"));
+            return true;
         }
+        plugin.transfer(player.getName(), ProLibConfig.getInstance().getFallbackServer());
+        return true;
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
+    protected List<String> tabComplete(CommandSender sender, String label, String[] args) {
         return Collections.emptyList();
     }
 }

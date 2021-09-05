@@ -104,6 +104,11 @@ public abstract class FileHandler<Plugin extends IModule> {
         return this.getConfig().get(path, def);
     }
 
+    public final boolean renameFile(String newName) {
+        File file = new File(this.file.getParentFile(), newName);
+        return this.file.renameTo(file);
+    }
+
     public final void reload() {
         if (this.directory.exists()) { // Directory exist?
             if (!this.directory.isDirectory()) { // File is directory?
